@@ -8,10 +8,15 @@ from math import acos, degrees
 from bpy.app.handlers import persistent
 from std_msgs.msg import Float64
 
-ang = 0
+neck1 = 0
+neck2 = 0
+neck3 = 0
+
 dynamixel_namespace = rospy.get_namespace()
 rospy.init_node('blender_arm', anonymous=True)
-dm = rospy.Publisher(dynamixel_namespace + 'tilt_controller/command', Float64)
+neck1dm = rospy.Publisher(dynamixel_namespace + 'neck1/command', Float64)
+neck2dm = rospy.Publisher(dynamixel_namespace + 'neck2/command', Float64)
+neck3dm = rospy.Publisher(dynamixel_namespace + 'neck3/command', Float64)
 
 def get_pose_matrix_in_other_space(mat, pose_bone):
     """ Returns the transform matrix relative to pose_bone's current
@@ -66,14 +71,27 @@ def get_bones_rotation_rad(armature,bone,axis):
 
 @persistent
 def load_handler(dummy):
-    global ang
-    global dm
+    global neck1, neck2, neck3, neck1dm, neck2dm, neck3dm
 
-    newang = get_bones_rotation_rad('Armature','bracket3','x')
-    if ang != newang:
-        ang = newang
-        print("ANG: %s" % newang)
-        dm.publish(float(newang))
+    newstuff = False
+
+    newneck1 = (get_bones_rotation_rad('Armature','bracket1','x') * -2) + 2.5
+    if neck1 != newneck1:
+        neck1 = newneck1
+        neck1dm.publish(float(newneck1))
+        print("NECK1: %s" % neck1)
+
+    newneck2 = (get_bones_rotation_rad('Armature','bracket2','z') * 2) + 2
+    if neck2 != newneck2:
+        neck2 = newneck2
+        neck2dm.publish(float(newneck2))
+        print("NECK2: %s" % neck2)
+
+    newneck3 = (get_bones_rotation_rad('Armature','bracket3','x') * 2) + 3
+    if neck3 != newneck3:
+        neck3 = newneck3
+        neck3dm.publish(float(newneck3))
+        print("NECK3: %s" % neck3)
 
 bpy.app.handlers.scene_update_post.append(load_handler)
 
