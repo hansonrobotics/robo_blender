@@ -4,6 +4,7 @@ import rospy
 import bpy
 import math
 import threading
+import yaml
 
 from mathutils import Matrix, Vector
 from math import acos, degrees
@@ -15,14 +16,74 @@ from std_msgs.msg import UInt16MultiArray
 from ros_pololu_servo.msg import servo_pololu
 
 class robo_blender :
-    def position_motor(self, motor, angle):
-        #msg = servo_pololu()
-        #msg.id = 1
-        #msg.angle = newreye
-        #msg.speed = 0
-        #msg.acceleration = 0
-        #self.pololu.publish(msg)
-        print("MOTOR: %s %s" % (motor, angle))
+    def read_motor_config(self, config):
+        stream = open(config, 'r')
+        self.config = yaml.load(stream)
+
+    def send_motors(self):
+        for motor in self.config:
+            name = motor["name"]
+            source = motor["source"].split(":")
+            if source[0] == "shapekey":
+                self.position_motor(motor, self.get_shape_position(motor))
+            if source[0] == "bone":
+                self.position_motor(motor, self.get_bone_position(motor))
+
+    def get_bone_position(self, config):
+        source = config["source"].split(":")
+        bone_parent = source[1]
+        bone = source[2]
+        axis = source[3]
+        cur_pos = self.get_bones_rotation_rad(bone_parent, bone, axis)
+        #print("GET BONE: %s -> %s : %s = %s" % (bone_parent, bone, axis, cur_pos))
+        return cur_pos
+
+    def set_bone_position(self, config, position):
+        source = config["source"].split(":")
+        bone_parent = source[1]
+        bone = source[2]
+        axis = source[3]
+        #print("SET BONE: %s -> %s : %s = %s" % (bone_parent, bone, axis, position))
+
+    def get_shape_position(self, config):
+        source = config["source"].split(":")
+        shape_parent = source[1]
+        shape = source[2]
+        position = 0
+        #print("GET SHAPE: %s -> %s = %s" % (shape_parent, shape, position))
+        return position
+
+    def set_shape_position(self, config, position):
+        source = config["source"].split(":")
+        shape_parent = source[1]
+        shape = source[2]
+        #print("SET SHAPE: %s -> %s = %s" % (shape_parent, shape, position))
+
+    def position_motor(self, config, angle):
+        #print("POSITION %s" % angle)
+        if config["name"] in self.positions:
+            cur_pos = self.positions[config["name"]]
+            if cur_pos != angle:
+                if config["type"] == "pololu": self.position_pololu(config, angle)
+                if config["type"] == "dynamixel": self.position_pololu(config, angle)
+        self.positions[config["name"]] = angle
+
+    def position_pololu(self, config, angle):
+        msg = servo_pololu()
+        msg.id = int(config["motorid"])
+        msg.angle = float(angle * float(config["scale"]) + float(config["translate"]))
+        msg.speed = int(config["speed"])
+        msg.acceleration = int(config["acceleration"])
+        pub = self.pololus[config["name"]]
+        if config["enabled"]: 
+            print("POLOLU: %s @ %s" % (config["name"], angle))
+            pub.publish(msg)
+
+    def position_dynamixel(self, config, angle):
+        pub = self.dynamixels[config["name"]]
+        if config["enabled"]: 
+            print("DYNAMIXEL: %s @ %s" % (config["name"], angle))
+            pub.publish(float(angle))
 
     def get_pose_matrix_in_other_space(self,mat, pose_bone):
         """ Returns the transform matrix relative to pose_bone's current
@@ -76,98 +137,25 @@ class robo_blender :
             return mat.to_euler().x
 
     def execute(self):
-        self.doeyes = True
-        self.domotors = False
-        self.leye = 0
-        self.reye = 0
-        self.jaw = 0
-        self.neck0 = 0
-        self.neck1 = 0
-        self.neck2 = 0
-        self.neck3 = 0
+        self.positions = {}
+        self.dynamixels = {}
+        self.pololus = {}
 
         namespace = rospy.get_namespace()
-        rospy.init_node('blender_arm', anonymous=True)
+        rospy.init_node('robo_blender', anonymous=True)
 
-        if self.doeyes:
-            self.pololu = rospy.Publisher(namespace + 'cmd_pololu', servo_pololu)
+        # init pololu
 
-        if self.domotors: 
-            self.jawdm = rospy.Publisher(namespace + 'jaw/command', Float64)
-            self.neck0dm = rospy.Publisher(namespace + 'neck0/command', Float64)
-            self.neck1dm = rospy.Publisher(namespace + 'neck1/command', Float64)
-            self.neck2dm = rospy.Publisher(namespace + 'neck2/command', Float64)
-            self.neck3dm = rospy.Publisher(namespace + 'neck3/command', Float64)
-
-        def faceCallback(thearray):
-            facemarker = bpy.data.objects['facedetect']
-            facemarker.location.x = 1.5 - (thearray.data[0] / 100) 
-            facemarker.location.z = 1.5 - (thearray.data[1] / 100)
-            print("CALLBACK %s" % thearray)
-
-        facedetect = rospy.Subscriber('/facedetect', UInt16MultiArray, faceCallback)
+        # init dynamixels
+        for motor in self.config:
+            if motor["type"] == "pololu" and motor["name"] not in self.pololus:
+                self.pololus[motor["name"]] = rospy.Publisher(namespace + 'cmd_pololu', servo_pololu)
+            if motor["type"] == "dynamixels" and motor["name"] not in self.dynamixels:
+                self.dynamixels[motor["name"]] = rospy.Publisher(namespace + motor["ros_path"] + '/command', Float64)
 
         @persistent
         def load_handler(dummy):
-            newstuff = False
-
-            newleye = self.get_bones_rotation_rad('leye','leyebone','z')
-            if self.leye != newleye:
-                self.leye = newleye
-                eyedeg = self.get_bones_rotation('leye','leyebone','z')
-                if self.doeyes: 
-                    msg = servo_pololu()
-                    msg.id = 0
-                    msg.angle = newleye
-                    msg.speed = 0
-                    msg.acceleration = 0
-                    self.pololu.publish(msg)
-                    print("LEYE: %s" % msg)
-
-            newreye = self.get_bones_rotation_rad('reye','reyebone','z')
-            if self.reye != newreye:
-                self.reye = newreye
-                eyedeg = self.get_bones_rotation('reye','reyebone','z')
-                if self.doeyes: 
-                    msg = servo_pololu()
-                    msg.id = 1
-                    msg.angle = newreye
-                    msg.speed = 0
-                    msg.acceleration = 0
-                    self.pololu.publish(msg)
-                    print("REYE: %s" % msg)
-
-            newjaw = self.get_bones_rotation_rad('jawarm','jawbone','x')
-            if self.jaw != newjaw:
-                self.jaw = newjaw
-                jawdeg = self.get_bones_rotation('jawarm','jawbone','x')
-                if self.domotors: self.jawdm.publish(float(jaw))
-                print("JAW: %s (%s)" % (self.jaw, jawdeg))
-
-            newneck0 = self.get_bones_rotation_rad('Armature','base','y') + 2.2
-            if self.neck0 != newneck0:
-                self.neck0 = newneck0
-                neck0deg = self.get_bones_rotation('Armature','base','y')
-                if self.domotors: self.neck0dm.publish(float(newneck0))
-                print("BASE: %s (%s)" % (self.neck0, neck0deg))
-
-            newneck1 = (self.get_bones_rotation_rad('Armature','bracket1','x') * -2) + 2.5
-            if self.neck1 != newneck1:
-                self.neck1 = newneck1
-                if self.domotors: self.neck1dm.publish(float(newneck1))
-                print("NECK1: %s" % self.neck1)
-
-            newneck2 = (self.get_bones_rotation_rad('Armature','bracket2','z') * 2) + 2
-            if self.neck2 != newneck2:
-                self.neck2 = newneck2
-                if self.domotors: self.neck2dm.publish(float(newneck2))
-                print("NECK2: %s" % self.neck2)
-
-            newneck3 = (self.get_bones_rotation_rad('Armature','bracket3','x') * 2) + 3
-            if self.neck3 != newneck3:
-                self.neck3 = newneck3
-                if self.domotors: self.neck3dm.publish(float(newneck3))
-                print("NECK3: %s" % self.neck3)
+            self.send_motors()
 
         bpy.app.handlers.scene_update_post.append(load_handler)
 
@@ -175,4 +163,5 @@ class robo_blender :
 
 print("ROBO: Starting")
 robo = robo_blender()
+robo.read_motor_config("motors.yaml")
 robo.execute()
