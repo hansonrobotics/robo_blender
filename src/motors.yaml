@@ -1,39 +1,65 @@
 - name: jaw
-  enabled: False
-  source: shapekey:head:jaw
+  enabled: true
+  binding: shapekey:Head:JawOpen
   type: pololu
   ros_path: cmd_pololu
-  motorid: 0
+  motorid: 17
   default: 0
   min: -1
   max: 1
-  speed: 1
-  acceleration: 0.1
+  speed: 200
+  acceleration: 100
+  scale: 1.5
+  translate: 0
+- name: brow
+  enabled: true
+  binding: shapekey:Head:BrowsD_L
+  type: pololu
+  ros_path: cmd_pololu
+  motorid: 16
+  default: 0
+  min: -1
+  max: 1
+  speed: 200
+  acceleration: 100
   scale: 1
-  translate: 1
+  translate: -0.5
 - name: neck_pitch
-  enabled: True
-  source: bone:Armature:bracket3:x
+  enabled: true
+  binding: bone:Armature:bracket3:x
   type: pololu
   ros_path: cmd_pololu
   motorid: 3
   default: 0
   min: 0
   max: 0.5
-  speed: 90
-  acceleration: 1
+  speed: 200
+  acceleration: 10
   scale: -2
   translate: 0.5 
+- name: neck_roll
+  enabled: true
+  binding: bone:Armature:bracket2:z
+  type: pololu
+  ros_path: cmd_pololu
+  motorid: 2
+  default: 0
+  min: 0
+  max: 0.5
+  speed: 200
+  acceleration: 10
+  scale: -2
+  translate: 0
 - name: neck_base
-  enabled: True
-  source: bone:Armature:base:y
+  enabled: true
+  binding: bone:Armature:base:y
   type: pololu
   ros_path: cmd_pololu
   motorid: 23
   default: 0
   min: 0
   max: 0.5
-  speed: 200
-  acceleration: 1
+  speed: 255
+  acceleration: 10
   scale: 1
   translate: 0 
