@@ -9,7 +9,7 @@ class faceshift_source:
 
         if binding[1] == "m_coeffs":
             element = field[int(binding[2])]
-            print("%s" % element)
+            #print("%s %s" % (config["source"], element))
             return element
 
         element = getattr(field, binding[2])

@@ -102,11 +102,15 @@ class robo_blender :
         return position
 
     def set_shape_position(self, config, position):
-        binding = config["binding"].split(":")
-        shape_parent = binding[1]
-        shape = binding[2]
-        #print("SET SHAPE: %s -> %s = %s" % (shape_parent, shape, position))
-        bpy.data.meshes[shape_parent].shape_keys.key_blocks[shape].value = position
+        if config["enabled"]:
+            binding = config["binding"].split(":")
+            shape_parent = binding[1]
+            shape = binding[2]
+            scale = config["scale"]
+            translate = config["translate"]
+            #print("SET SHAPE: %s -> %s = %s" % (shape_parent, shape, position))
+            if config["invert"]: position = 1 - position
+            bpy.data.meshes[shape_parent].shape_keys.key_blocks[shape].value = position * scale
 
     def position_motor(self, config, angle):
         #print("POSITION %s" % angle)
