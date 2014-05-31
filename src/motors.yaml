@@ -25,7 +25,7 @@
   scale: 1
   translate: -0.5
 - name: neck_pitch
-  enabled: false
+  enabled: true
   binding: bone:Armature:bracket3:x
   type: pololu
   ros_path: cmd_pololu
@@ -38,7 +38,7 @@
   scale: -2
   translate: 0.5 
 - name: neck_roll
-  enabled: false
+  enabled: true
   binding: bone:Armature:bracket2:z
   type: pololu
   ros_path: cmd_pololu
@@ -51,7 +51,7 @@
   scale: -2
   translate: 0
 - name: neck_base
-  enabled: false
+  enabled: true
   binding: bone:Armature:base:y
   type: pololu
   ros_path: cmd_pololu
