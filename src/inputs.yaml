@@ -43,12 +43,22 @@
   scale: 1.5
   translate: 0
   invert: false
-- name: browr
+- name: smilel
   enabled: true
   driver: ros
   processor: faceshift_source
-  source: /faceshift_track:m_coeffs:14
-  binding: shapekey:Head:BrowsD_R
-  scale: 1.5
+  source: /faceshift_track:m_coeffs:28
+  binding: shapekey:Head:MouthSmile_L
+  scale: 1.4
   translate: 0
   invert: false
+- name: smiler
+  enabled: true
+  driver: ros
+  processor: faceshift_source
+  source: /faceshift_track:m_coeffs:28
+  binding: shapekey:Head:MouthSmile_R
+  scale: 1.4
+  translate: 0
+  invert: false
+
