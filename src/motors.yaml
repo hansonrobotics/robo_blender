@@ -22,8 +22,8 @@
   max: -0.2
   speed: 200
   acceleration: 100
-  scale: -2.5
-  translate: 1
+  scale: 2.3
+  translate: -2.5
 - name: neck_pitch
   enabled: true
   binding: bone:Armature:bracket3:x
