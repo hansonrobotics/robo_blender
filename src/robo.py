@@ -7,7 +7,7 @@ import threading
 import yaml
 import importlib
 
-from mathutils import Matrix, Vector
+from mathutils import *
 from math import acos, degrees
 
 from bpy.app.handlers import persistent
@@ -16,6 +16,54 @@ from std_msgs.msg import UInt16MultiArray
 
 from ros_pololu_servo.msg import servo_pololu
 from ros_faceshift.msg import *
+
+class MovingTarget :
+    target = None
+    dest = None
+    # Realitive point for the head in which we need to move objects
+    offset = None
+    #Speed is in radians per frame
+    speed  = 0.01
+    # variables for operation
+    startLocation = None
+    destLocation = None
+    steps = 0
+    currentStep = 0
+    totalSteps = 0
+
+    def __init__(self, target,destination,offset,speed):
+        self.target = target
+        self.dest = destination
+        self.offset = offset
+        if speed > 0 :
+            self.speed = speed
+        pass
+
+    def move(self):
+        diff = self.dest.location - self.target.location
+        #ignore small differences in case
+        if (diff.length  < 0.001):
+            return
+        #start new movement if destination location is changed
+        if (self.destLocation != self.dest.location) :
+            self.destLocation = self.dest.location.copy()
+            self.currentStep = 0
+            #calculate total steps
+            v1 = self.target.location - self.offset
+            v2 = self.dest.location - self.offset
+            ang = v1.angle(v2,0)
+            self.totalSteps = int(ang/self.speed)
+            self.startLocation =  self.target.location.copy()
+        self.currentStep = self.currentStep +1
+        # Check in case
+        if self.currentStep > self.totalSteps:
+            return
+
+        v1 = self.dest.location - self.offset
+        v2 = self.startLocation - self.offset
+        v3 = v2.lerp(v1,self.currentStep/self.totalSteps)
+        self.target.location = v3 + self.offset
+
 
 class robo_blender :
     def read_motor_config(self, config):
@@ -207,9 +255,14 @@ class robo_blender :
                 self.pololus[motor["name"]] = rospy.Publisher(namespace + 'cmd_pololu', servo_pololu)
             if motor["type"] == "dynamixels" and motor["name"] not in self.dynamixels:
                 self.dynamixels[motor["name"]] = rospy.Publisher(namespace + motor["ros_path"] + '/command', Float64)
+        # start target
+        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.01)
+        self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.04)
+
 
         @persistent
         def load_handler(dummy):
+            """
             for op in self.ops:
                 processor = op[0]
                 msg = op[1]
@@ -222,10 +275,14 @@ class robo_blender :
                     self.set_bone_position(con, r)
             self.ops = []
             self.send_motors()
-
+            """
+            self.mTarget.move()
+            self.mEyes.move()
         bpy.app.handlers.scene_update_pre.append(load_handler)
-
         print("ROBO: Started")
+
+
+
 
 print("ROBO: Starting")
 robo = robo_blender()
