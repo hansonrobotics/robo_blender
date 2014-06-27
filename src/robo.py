@@ -6,16 +6,19 @@ import math
 import threading
 import yaml
 import importlib
+import pprint
 
 from mathutils import *
 from math import acos, degrees
 
 from bpy.app.handlers import persistent
-from std_msgs.msg import Float64
-from std_msgs.msg import UInt16MultiArray
-
+# import standard messages types
+from std_msgs.msg import *
+from sensor_msgs.msg import *
 from ros_pololu_servo.msg import servo_pololu
 from ros_faceshift.msg import *
+from basic_head_api.msg import PointHead
+
 
 class MovingTarget :
     target = None
@@ -75,9 +78,11 @@ class robo_blender :
         self.inputs = yaml.load(stream)
         processors = {}
         source_listeners = {}
+        self.bones = {}
 
         for con in self.inputs:
             name = con["name"]
+            self.bones[con["name"]] = con
             binding = con["binding"].split(":")
             source = con["source"].split(":")
             if con["processor"] not in processors:
@@ -88,15 +93,19 @@ class robo_blender :
             if source[0] not in source_listeners:
                 source_listeners[source[0]] = []
 
-                def call_listeners(msg):
-                    for callback_pair in source_listeners[source[0]]:
+                def call_listeners(msg,src):
+                    print(src)
+                    for callback_pair in source_listeners[src]:
                         listener = callback_pair[0]
                         con = callback_pair[1]
                         #print("CALLING %s %s" % (con["source"], con["binding"]))
                         listener(con, msg)
 
-                print("BINDING %s" % source[0])
-                rospy.Subscriber(source[0], processor.msgclass(), call_listeners)
+                def bind(src):
+                    print("BINDING %s" % src)
+                    rospy.Subscriber(src, processor.msgclass(), lambda msg : call_listeners(msg,src))
+
+                bind(source[0])
 
             def callback(con, msg):
                 self.ops.append([processor, msg, con])
@@ -121,6 +130,18 @@ class robo_blender :
         cur_pos = self.get_bones_rotation_rad(bone_parent, bone, axis)
         #print("GET BONE: %s -> %s : %s = %s" % (bone_parent, bone, axis, cur_pos))
         return cur_pos
+
+    def get_head_rotation_euler(self):
+        msg = PointHead()
+        msg.pitch = self.get_bone_position(self.bones['headpitch'])
+        msg.roll = self.get_bone_position(self.bones['headroll'])
+        msg.yaw = 0-self.get_bone_position(self.bones['headrotation'])
+        return msg
+
+
+    def send_head_rotion(self):
+        msg = self.get_head_rotation_euler()
+        self.point_head.publish(msg)
 
     def set_bone_position(self, config, position):
         binding = config["binding"].split(":")
@@ -159,6 +180,13 @@ class robo_blender :
             #print("SET SHAPE: %s -> %s = %s" % (shape_parent, shape, position))
             if config["invert"]: position = 1 - position
             bpy.data.meshes[shape_parent].shape_keys.key_blocks[shape].value = position * scale
+
+    def set_object_position(self, config, position):
+        if config["enabled"]:
+            binding = config["binding"].split(":")
+            object = binding[1]
+            bpy.data.objects[object].location = Vector(config["offset"])+position*config["scale"]
+            #pprint.pprint(config["offset"])
 
     def position_motor(self, config, angle):
         #print("POSITION %s" % angle)
@@ -255,27 +283,31 @@ class robo_blender :
                 self.pololus[motor["name"]] = rospy.Publisher(namespace + 'cmd_pololu', servo_pololu)
             if motor["type"] == "dynamixels" and motor["name"] not in self.dynamixels:
                 self.dynamixels[motor["name"]] = rospy.Publisher(namespace + motor["ros_path"] + '/command', Float64)
+        self.point_head = rospy.Publisher(namespace+'point_head',PointHead)
         # start target
-        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.01)
+        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.005)
         self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.04)
 
 
         @persistent
         def load_handler(dummy):
-            """
+
             for op in self.ops:
                 processor = op[0]
                 msg = op[1]
                 con = op[2]
                 binding = con["binding"].split(":")
                 r = processor.process(msg, con)
-                if binding[0] == "shapekey":
-                    self.set_shape_position(con, r)
-                if binding[0] == "bone":
-                    self.set_bone_position(con, r)
+                #if binding[0] == "shapekey":
+                    #self.set_shape_position(con, r)
+                #if binding[0] == "bone":
+                    #self.set_bone_position(con, r)
+                if binding[0] == "object_pos":
+                    self.set_object_position(con, r)
+
             self.ops = []
-            self.send_motors()
-            """
+            #self.send_motors()
+            self.send_head_rotion()
             self.mTarget.move()
             self.mEyes.move()
         bpy.app.handlers.scene_update_pre.append(load_handler)

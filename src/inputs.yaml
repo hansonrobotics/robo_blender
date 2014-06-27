@@ -61,4 +61,23 @@
   scale: 1.4
   translate: 0
   invert: false
+- name: saliency_tracker
+  enabled: true
+  driver: ros
+  processor: roi_from_camera
+  source: /nmpt_roi
+  binding: object_pos:saliency
+  offset: [0.008,-1,0.458737]
+  scale: 1.5
+  enabled: true
+
+- name: face_detection
+  enabled: true
+  driver: ros
+  processor: roi_from_camera
+  source: /roi
+  binding: object_pos:destination
+  offset: [0.008,-1,0.458737]
+  scale: 1.5
+
 

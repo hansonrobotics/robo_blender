@@ -1,5 +1,6 @@
-import mathutils
-from ros_faceshift.msg import fsMsgTrackingState
+# !imports in dynamicly loaded files do not work!
+#from ros_faceshift.msg import fsMsgTrackingState
+
 
 class faceshift_source:
     def process(self, msg, config):
