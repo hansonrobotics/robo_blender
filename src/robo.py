@@ -121,7 +121,7 @@ class Behavior :
         msg.exprname = emotion
         msg.intensity = intensity
         self.current_emotion = emotion
-        self.current_intensity = intensity
+        self.current_intensity = intensity/11.
         self.pub.publish(msg)
 
     # Put all emotions to queue
@@ -196,6 +196,18 @@ class robo_blender :
         stream = open(config, 'r')
         self.pau = yaml.load(stream)
 
+    def get_head_rotation_euler(self):
+        msg = PointHead()
+        msg.pitch = self.get_bone_position(self.bones['headpitch'])
+        msg.roll = self.get_bone_position(self.bones['headroll'])
+        msg.yaw = 0-self.get_bone_position(self.bones['headrotation'])
+        return msg
+
+
+    def send_head_rotion(self):
+        msg = self.get_head_rotation_euler()
+        self.point_head.publish(msg)
+
     def read_input_config(self, config):
         stream = open(config, 'r')
         self.inputs = yaml.load(stream)
@@ -266,7 +278,7 @@ class robo_blender :
 
 
     def get_bone_position(self, config):
-        binding = config["source"].split(":")
+        binding = config["binding"].split(":")
         bone_parent = binding[1]
         bone = binding[2]
         axis = binding[3]
@@ -382,12 +394,12 @@ class robo_blender :
 
         # PAU publisher
         self.pau_pub = rospy.Publisher(namespace + self.config['pau_topic'], fsMsgTrackingState)
-
+        self.point_head = rospy.Publisher(namespace+'point_head',PointHead)
         #Emotional behaviour
         self.emo_pub = rospy.Publisher(namespace + self.config['emo_topic'], MakeFaceExpr)
         self.behaviour =  Behavior(self.config["fps"],self.emo_pub )
         # start target
-        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.005)
+        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.08)
         self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.04)
 
 
@@ -413,8 +425,8 @@ class robo_blender :
                     self.set_object_position(con, r)
 
             self.ops = []
-            #self.send_motors()
-            self.send_pau()
+            self.send_head_rotion()
+            #self.send_pau()
             self.mTarget.move()
             self.mEyes.move()
         bpy.app.handlers.scene_update_pre.append(load_handler)
