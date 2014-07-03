@@ -70,7 +70,6 @@
   offset: [0.008,-1,0.458737]
   scale: 1.5
   enabled: true
-
 - name: face_detection
   enabled: true
   driver: ros
@@ -79,5 +78,3 @@
   binding: object_pos:destination
   offset: [0.008,-1,0.458737]
   scale: 1.5
-
-

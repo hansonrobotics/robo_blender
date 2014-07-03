@@ -1,4 +1,4 @@
-#!/usr/bin/env python  
+#!/usr/bin/env python3
 #import roslib; roslib.load_manifest('dmitry_tracker')
 import rospy
 import bpy
@@ -7,9 +7,11 @@ import threading
 import yaml
 import importlib
 import pprint
-
+import time
+import queue
 from mathutils import *
 from math import acos, degrees
+import random
 
 from bpy.app.handlers import persistent
 # import standard messages types
@@ -18,6 +20,8 @@ from sensor_msgs.msg import *
 from ros_pololu_servo.msg import servo_pololu
 from ros_faceshift.msg import *
 from basic_head_api.msg import PointHead
+from pau2motors.msg import fsMsgTrackingState
+from basic_head_api.msg import MakeFaceExpr
 
 
 class MovingTarget :
@@ -67,11 +71,130 @@ class MovingTarget :
         v3 = v2.lerp(v1,self.currentStep/self.totalSteps)
         self.target.location = v3 + self.offset
 
+#Demo to control robots emotions based on faces
+class Behavior :
+
+    def __init__(self,fps,pub):
+        #ticks synced with robo blender
+        self.idle = 0
+        self.current_person = 0
+        self.current_emotion = None
+        self.current_intensity = 0
+        self.emotions = queue.Queue()
+        #headmovement
+        self.positions = queue.Queue()
+        self.distance = 0.
+        self.fps = fps
+        self.currentTimer = 0
+        self.randomEm = ["eureka","innocent","annoyed", "evil","horrified"]
+        self.pub = pub
+
+
+    def tick(self, ops):
+        #currently we use only face detection
+        if len(ops)>0:
+            self.current_person += 1
+            self.idle -= 1
+            if self.current_person > 3:
+                self.idle = 0
+            last = ops[-1]
+            msg = last[1]
+            self.positions.put(msg)
+            if self.positions.qsize() >= self.fps:
+                old = self.positions.get()
+                self.distance = math.fabs(old.x_offset+old.width/2 -msg.x_offset - msg.width/2.)\
+                                +math.fabs(old.y_offset+old.height/2 -msg.y_offset -msg.height/2)
+        else:
+            self.idle += 1
+            if self.idle > 10:
+                self.current_person = 0
+        # Top priority tasks:
+        if self.current_person == 10:
+            self.meet()
+        if self.idle == 25:
+            self.bye()
+        self.process()
+
+
+    def _em(self, emotion,intensity):
+        msg = MakeFaceExpr()
+        msg.exprname = emotion
+        msg.intensity = intensity
+        self.current_emotion = emotion
+        self.current_intensity = intensity
+        self.pub.publish(msg)
+
+    # Put all emotions to queue
+    def _queue(self,emotion,intensity, timer):
+        em = {'e': emotion, 'i':intensity, 't':timer}
+        self.emotions.put(em)
+
+    #Meet new face, do big smile
+    def meet(self):
+        self.emotions.queue.clear()
+        self.currentTimer = 0
+        self._queue('happy',11,50)
+        self._queue('happy',10,10)
+        self._queue('happy',9,10)
+        self._queue('happy',8,10)
+
+
+    def bye(self):
+        self.emotions.queue.clear()
+        self.currentTimer = 0
+        self._queue('sad',7,50)
+        self._queue('sad',8,10)
+        self._queue('sad',9,10)
+        self._queue('sad',10,60)
+
+    def rand(self):
+        em = self.randomEm[random.randrange(0,len(self.randomEm)-1)]
+        i = random.randrange(7,11)
+        timer = random.randrange(50,150)
+        self._queue(em,i,timer)
+
+    def next(self):
+        print ("current: ", self.current_person)
+        # is meet and current face is detected
+        if self.current_person > 10:
+            if self.distance < 100 and self.current_intensity > 4:
+                self._queue(self.current_emotion,self.current_intensity-1,25)
+                return
+            if self.distance >= 100 and self.distance < 200:
+                self._queue('surprised',8,25)
+                return
+            if self.distance > 200:
+                self._queue('surprised',11,25)
+                return
+        if self.idle > 10:
+            if self.current_intensity > 4:
+                self._queue(self.current_emotion,self.current_intensity-1,25)
+        self.rand()
+
+    def process(self):
+        #no cahnge
+        if self.currentTimer > 0:
+            self.currentTimer -= 1
+            return
+        # need to do something
+        if self.emotions.empty():
+            self.next()
+        # shouldnt be empty
+        if self.emotions.empty():
+            return
+        em = self.emotions.get()
+        self.currentTimer = em['t']
+        self._em(em['e'],em['i'])
+
 
 class robo_blender :
-    def read_motor_config(self, config):
+    def read_config(self, config):
         stream = open(config, 'r')
         self.config = yaml.load(stream)
+
+    def read_pau_config(self, config):
+        stream = open(config, 'r')
+        self.pau = yaml.load(stream)
 
     def read_input_config(self, config):
         stream = open(config, 'r')
@@ -94,7 +217,6 @@ class robo_blender :
                 source_listeners[source[0]] = []
 
                 def call_listeners(msg,src):
-                    print(src)
                     for callback_pair in source_listeners[src]:
                         listener = callback_pair[0]
                         con = callback_pair[1]
@@ -113,17 +235,38 @@ class robo_blender :
             source_listeners[source[0]].append([callback, con])
             print("ADDING %s" % con["source"])
 
-    def send_motors(self):
-        for motor in self.config:
-            name = motor["name"]
-            binding = motor["binding"].split(":")
-            if binding[0] == "shapekey":
-                self.position_motor(motor, self.get_shape_position(motor))
-            if binding[0] == "bone":
-                self.position_motor(motor, self.get_bone_position(motor))
+    def send_pau(self):
+        pau_msg = fsMsgTrackingState()
+        # head rotation
+        e = Euler((0,0,0))
+        #set 0 for coeffs
+        pau_msg.m_coeffs = [0]*48;
+        for config in self.pau:
+            source = config["source"].split(":")
+            if source[0] == "shapekey":
+                val = self.get_shape_position(config)
+            if source[0] == "bone":
+                val = self.get_bone_position(config)
+            val = val*config['scale']+config['translate']
+
+            msgKey = config["pau"].split(":")
+            if msgKey[0] == "m_coeffs":
+                pau_msg.m_coeffs[int(msgKey[1])] = val
+            if msgKey[0] == "m_headRotation":
+                setattr(e,msgKey[1],val)
+            if msgKey[0] == "m_headTranslation":
+                setattr(pau_msg.m_headTranslation,msgKey[1],val)
+        #Euler to quaternion
+        q = e.to_quaternion()
+        pau_msg.m_headRotation.x = q.x
+        pau_msg.m_headRotation.y = q.y
+        pau_msg.m_headRotation.z = q.z
+        pau_msg.m_headRotation.w = q.w
+        self.pau_pub.publish(pau_msg)
+
 
     def get_bone_position(self, config):
-        binding = config["binding"].split(":")
+        binding = config["source"].split(":")
         bone_parent = binding[1]
         bone = binding[2]
         axis = binding[3]
@@ -131,17 +274,6 @@ class robo_blender :
         #print("GET BONE: %s -> %s : %s = %s" % (bone_parent, bone, axis, cur_pos))
         return cur_pos
 
-    def get_head_rotation_euler(self):
-        msg = PointHead()
-        msg.pitch = self.get_bone_position(self.bones['headpitch'])
-        msg.roll = self.get_bone_position(self.bones['headroll'])
-        msg.yaw = 0-self.get_bone_position(self.bones['headrotation'])
-        return msg
-
-
-    def send_head_rotion(self):
-        msg = self.get_head_rotation_euler()
-        self.point_head.publish(msg)
 
     def set_bone_position(self, config, position):
         binding = config["binding"].split(":")
@@ -163,7 +295,7 @@ class robo_blender :
         #print("SET BONE: %s -> %s : %s = %s" % (bone_parent, bone, axis, rot))
         
     def get_shape_position(self, config):
-        binding = config["binding"].split(":")
+        binding = config["source"].split(":")
         shape_parent = binding[1]
         shape = binding[2]
         position = bpy.data.meshes[shape_parent].shape_keys.key_blocks[shape].value
@@ -187,32 +319,6 @@ class robo_blender :
             object = binding[1]
             bpy.data.objects[object].location = Vector(config["offset"])+position*config["scale"]
             #pprint.pprint(config["offset"])
-
-    def position_motor(self, config, angle):
-        #print("POSITION %s" % angle)
-        if config["name"] in self.positions:
-            cur_pos = self.positions[config["name"]]
-            if cur_pos != angle:
-                if config["type"] == "pololu": self.position_pololu(config, angle)
-                if config["type"] == "dynamixel": self.position_pololu(config, angle)
-        self.positions[config["name"]] = angle
-
-    def position_pololu(self, config, angle):
-        msg = servo_pololu()
-        msg.id = int(config["motorid"])
-        msg.angle = float(angle * float(config["scale"]) + float(config["translate"]))
-        msg.speed = int(config["speed"])
-        msg.acceleration = int(config["acceleration"])
-        pub = self.pololus[config["name"]]
-        if config["enabled"]: 
-            #print("POLOLU: %s @ %s" % (config["name"], angle))
-            pub.publish(msg)
-
-    def position_dynamixel(self, config, angle):
-        pub = self.dynamixels[config["name"]]
-        if config["enabled"]: 
-            #print("DYNAMIXEL: %s @ %s" % (config["name"], angle))
-            pub.publish(float(angle))
 
     def get_pose_matrix_in_other_space(self,mat, pose_bone):
         """ Returns the transform matrix relative to pose_bone's current
@@ -267,23 +373,19 @@ class robo_blender :
 
     def execute(self):
         self.positions = {}
-        self.dynamixels = {}
-        self.pololus = {}
 
         self.ops = []
-
+        self.lastframe = time.time()
+        self.frame_interval = 1/self.config["fps"]
         namespace = rospy.get_namespace()
         rospy.init_node('robo_blender', anonymous=True)
 
-        # init pololu
+        # PAU publisher
+        self.pau_pub = rospy.Publisher(namespace + self.config['pau_topic'], fsMsgTrackingState)
 
-        # init dynamixels
-        for motor in self.config:
-            if motor["type"] == "pololu" and motor["name"] not in self.pololus:
-                self.pololus[motor["name"]] = rospy.Publisher(namespace + 'cmd_pololu', servo_pololu)
-            if motor["type"] == "dynamixels" and motor["name"] not in self.dynamixels:
-                self.dynamixels[motor["name"]] = rospy.Publisher(namespace + motor["ros_path"] + '/command', Float64)
-        self.point_head = rospy.Publisher(namespace+'point_head',PointHead)
+        #Emotional behaviour
+        self.emo_pub = rospy.Publisher(namespace + self.config['emo_topic'], MakeFaceExpr)
+        self.behaviour =  Behavior(self.config["fps"],self.emo_pub )
         # start target
         self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.005)
         self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.04)
@@ -291,7 +393,12 @@ class robo_blender :
 
         @persistent
         def load_handler(dummy):
-
+            t = time.time()
+            if t - self.lastframe < 1/self.config["fps"]:
+                return
+            self.lastframe = self.lastframe + self.frame_interval
+            #control emotion
+            self.behaviour.tick(self.ops)
             for op in self.ops:
                 processor = op[0]
                 msg = op[1]
@@ -307,17 +414,14 @@ class robo_blender :
 
             self.ops = []
             #self.send_motors()
-            self.send_head_rotion()
+            self.send_pau()
             self.mTarget.move()
             self.mEyes.move()
         bpy.app.handlers.scene_update_pre.append(load_handler)
         print("ROBO: Started")
-
-
-
-
 print("ROBO: Starting")
 robo = robo_blender()
-robo.read_motor_config("motors.yaml")
+robo.read_config("config.yaml")
 robo.read_input_config("inputs.yaml")
+robo.read_pau_config("pau.yaml")
 robo.execute()
