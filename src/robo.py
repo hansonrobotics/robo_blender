@@ -49,8 +49,8 @@ class MovingTarget :
     def move(self):
         diff = self.dest.location - self.target.location
         #ignore small differences in case
-        if (diff.length  < 0.001):
-            return
+        if (diff.length  < 0.0001):
+             return
         #start new movement if destination location is changed
         if (self.destLocation != self.dest.location) :
             self.destLocation = self.dest.location.copy()
@@ -59,7 +59,7 @@ class MovingTarget :
             v1 = self.target.location - self.offset
             v2 = self.dest.location - self.offset
             ang = v1.angle(v2,0)
-            self.totalSteps = int(ang/self.speed)
+            self.totalSteps = max(int(ang/self.speed),1)
             self.startLocation =  self.target.location.copy()
         self.currentStep = self.currentStep +1
         # Check in case
@@ -399,8 +399,8 @@ class robo_blender :
         self.emo_pub = rospy.Publisher(namespace + self.config['emo_topic'], MakeFaceExpr)
         self.behaviour =  Behavior(self.config["fps"],self.emo_pub )
         # start target
-        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.08)
-        self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.04)
+        self.mTarget = MovingTarget(bpy.data.objects['target'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.06)
+        self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['destination'],bpy.data.objects['nose'].location,0.09)
 
 
         @persistent
