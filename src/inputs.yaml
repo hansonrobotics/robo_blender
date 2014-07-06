@@ -25,56 +25,29 @@
   scale: 1
   translate: 0
   invert: false
-- name: mouth
+
+- inputclass: Faceshift
   enabled: true
-  driver: ros
-  processor: faceshift_source
-  source: /faceshift_track:m_coeffs:21
-  binding: shapekey:Head:JawOpen
-  scale: 1
-  translate: 0
-  invert: false
-- name: browl
+  sourcetopic: faceshift_track
+  binding:
+    meshname: Head
+    bones:
+      - 
+
+- inputclass: NmptSaliency
   enabled: true
-  driver: ros
-  processor: faceshift_source
-  source: /faceshift_track:m_coeffs:14
-  binding: shapekey:Head:BrowsD_L
-  scale: 1.5
-  translate: 0
-  invert: false
-- name: smilel
+  sourcetopic: nmpt_roi
+  binding:
+    objectpos:
+      name: saliency
+      offset: [0.008,-1,0.458737]
+      scale: 1.5
+
+- inputclass: PiVision
   enabled: true
-  driver: ros
-  processor: faceshift_source
-  source: /faceshift_track:m_coeffs:28
-  binding: shapekey:Head:MouthSmile_L
-  scale: 1.4
-  translate: 0
-  invert: false
-- name: smiler
-  enabled: true
-  driver: ros
-  processor: faceshift_source
-  source: /faceshift_track:m_coeffs:28
-  binding: shapekey:Head:MouthSmile_R
-  scale: 1.4
-  translate: 0
-  invert: false
-- name: saliency_tracker
-  enabled: true
-  driver: ros
-  processor: roi_from_camera
-  source: /nmpt_roi
-  binding: object_pos:saliency
-  offset: [0.008,-1,0.458737]
-  scale: 1.5
-  enabled: true
-- name: face_detection
-  enabled: true
-  driver: ros
-  processor: roi_from_camera
-  source: /roi
-  binding: object_pos:destination
-  offset: [0.008,-1,0.458737]
-  scale: 1.5
+  sourcetopic: roi
+  binding:
+    objectpos:
+      name: pivision
+      offset: [0.008,-1,0.458737]
+      scale: 1.5
