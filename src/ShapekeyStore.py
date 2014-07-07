@@ -52,7 +52,7 @@ _shkey_list = [
 
 # Create a dictionary mapping shapekeys to their indices
 _shkey2Index = {}
-for i in xrange(len(_shkey_list)):
+for i in range(len(_shkey_list)):
   _shkey2Index[_shkey_list[i]] = i
 
 def getIndex(shapekey):

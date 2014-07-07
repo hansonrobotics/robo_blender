@@ -18,8 +18,8 @@ class _ObjectInBlender:
   def _set_object_location(self, point):
     if confentry["enabled"]:
       binding = confentry["binding"]["objectpos"]
-      location = Vector(binding["offset"]) + point * binding["scale"]
-      bpy.data.objects[binding["name"]].location = location
+      self.location = Vector(binding["offset"]) + point * binding["scale"]
+      bpy.data.objects[binding["name"]].location = self.location
 
   def _confirm_object(self):
     """Create object with name specified in config if it's not there."""
@@ -29,6 +29,7 @@ class _ObjectInBlender:
 
   def __init__(self, confentry):
     self.confentry = confentry
+    self.location = Vector()
 
 
 class Shelf:
@@ -125,3 +126,11 @@ def build_single(confentry):
   """
   clazz = getattr(Shelf, confentry["inputclass"])
   return clazz(confentry)
+
+def initialize(fullconfig):
+  self.instances = {
+    confentry["classname"]: build_single(confentry) for confentry in fullconfig
+  }
+
+def get_instance(classname):
+  return self.instances[classname]
