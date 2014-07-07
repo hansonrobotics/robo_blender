@@ -3,6 +3,8 @@ import rospy
 from sensor_msgs.msg import RegionOfInterest, CameraInfo
 from ros_nmpt_saliency.msg import targets
 from ros_faceshift.msg import fsMsgTrackingState
+import ShapekeyStore
+import Utils
 
 class _ObjectInBlender:
   """A base class that can be used to move an object in Blender space."""
@@ -61,6 +63,7 @@ class Shelf:
 
       super(PiVision, self).__init__(confentry)
 
+
   class NmptSaliency(_ObjectInBlender):
 
     def handle_source(self, msg):
@@ -71,12 +74,47 @@ class Shelf:
       rospy.Subscriber(confentry["sourcetopic"], targets, self.handle_source)
       super(NmptSaliency, self).__init__(confentry)
 
+
   class Faceshift:
 
+    def build_set_bone_position(self, singlebind_dict):
+      keychain = Utils.DictKeyChain(singlebind_dict["varpath"].split(":"))
+      bone_parent, bone, axis = singlebind_dict["bonerot"].split(":")
+      rot_index = {"x": 0, "y": 1, "z": 2}[axis]
+
+      def processor(msg):
+        bpy.data.objects[bone_parent].pose.bones[bone].rotation_mode = 'XYZ'
+        rot = bpy.data.objects[bone_parent].pose.bones[bone].rotation_euler
+        rot[rot_index] = keychain.get_from(msg)
+        bpy.data.objects[bone_parent].pose.bones[bone].rotation_euler = rot
+
+      return processor
+
     def handle_source(self, msg):
-      pass
+      if not confentry["enabled"]:
+        return
+
+      # Apply shapekeys
+      meshname = self.confentry["binding"]["meshname"]
+      for i in range(len(msg.m_coeffs)):
+        shapename = ShapekeyStore.getString(i)
+        bpy.data.meshes[meshname].shape_keys.key_blocks[shapename].value = msg.m_coeffs[i]
+
+      # Process single binds
+      for processor in self.singlebind_processors:
+        processor(msg)
+      
 
     def __init__(self, confentry):
+      self.confentry = confentry
+
+      # Build processors for entries in confentry["binding"]["singles"]
+      self.singlebind_processors = []
+      for singlebind in self.confentry["binding"]["singles"]:
+        self.singlebind_processors.append(
+          self.build_set_bone_position(singlebind)
+        )
+
       rospy.Subscriber(confentry["sourcetopic"], fsMsgTrackingState, self.handle_source)
 
 
