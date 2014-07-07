@@ -3,6 +3,7 @@ import sys
 import bpy
 import rospy
 from basic_head_api.msg import MakeFaceExpr
+import outputs
 
 class SmartTrack:
 
@@ -167,21 +168,28 @@ class SmartTrack:
 
   def __init__(self):
     self.fps = 25
+    self.leftover_time = 0.0
+
     self.behavior = Behavior(
       self.fps,
       rospy.Publisher(self.config['emo_topic'], MakeFaceExpr)
     )
     self.mTarget = MovingTarget(bpy.data.objects['headtarget'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.06)
     self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.09)
-    self.leftover_time = 0.0
+
+    self.neck_output = outputs.get_instance("neck_euler")
+
 
   def step(self, dt):
     # Execute tick() at the rate of self.fps
     dt = dt + self.leftover_time
     n = int(dt*self.fps)
+    self.leftover_time = dt*self.fps - n
+
     for i in range(n):
       self.tick()
-    self.leftover_time = dt*self.fps - n
+
+    self.neck_output.transmit()
 
   def tick(self):
     self.behavior.tick()

@@ -1,0 +1,12 @@
+- name: neck_euler
+  inputclass: ParametersOut
+  enabled: true
+  pubtopic: point_head
+  msg: basic_head_api.msg.PointHead
+  binding:
+    - varpath: yaw
+      bonerot: Armature:base:y
+    - varpath: pitch
+      bonerot: Armature:bracket3:x
+    - varpath: roll
+      bonerot: Armature:bracket2:z

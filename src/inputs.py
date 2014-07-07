@@ -6,6 +6,16 @@ from ros_faceshift.msg import fsMsgTrackingState
 import ShapekeyStore
 import Utils
 
+__doc__ = """
+inputs.py is a module that holds classes and their instances that are
+responsible for transferring input data (like from sensors) to Blender space.
+
+E.g. PiVision and Saliency classes control small cubes to represent the
+point received.
+
+Default config: config/inputs.yaml
+"""
+
 class _ObjectInBlender:
   """A base class that can be used to move an object in Blender space."""
 
@@ -122,14 +132,14 @@ class Shelf:
 def build_single(confentry):
   """
   Build an instance of a class from the Shelf with the name specified by
-  confentry["classname"]
+  confentry["inputclass"]
   """
   clazz = getattr(Shelf, confentry["inputclass"])
   return clazz(confentry)
 
 def initialize(fullconfig):
   self.instances = {
-    confentry["classname"]: build_single(confentry) for confentry in fullconfig
+    confentry["inputclass"]: build_single(confentry) for confentry in fullconfig
   }
 
 def get_instance(classname):

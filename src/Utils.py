@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+import yaml
+
 class DictKeyChain:
   """
   Allows to build a chain of dictionary keys (or array indices or object
@@ -8,13 +11,25 @@ class DictKeyChain:
   string.
   """
 
-  def get_from(self, host):
-    for key in self.key_list:
+  @staticmethod
+  def _get_from(host, key_list):
+    for key in key_list:
       if hasattr(host, "__getitem__"):
         host = host[key]
       else:
         host = getattr(host, key)
     return host
+
+  def get_from(self, host):
+    return self._get_from(host, key_list)
+
+  def set_on(self, host, val):
+    host = self._get_from(host, self.key_list[:-1])
+    key = self.key_list[-1]
+    if hasattr(host, "__setitem__"):
+      host[key] = val
+    else:
+      setattr(host, key, val)
 
   def __init__(self, key_list):
     # Parse strings to integers where possible
@@ -24,3 +39,11 @@ class DictKeyChain:
         else key,
       key_list
     )
+
+def read_yaml(yamlname):
+  dirname, filename = os.path.split(os.path.abspath(__file__))
+
+  stream = open(os.path.join(dirname, yamlname), 'r')
+  result = yaml.load(stream)
+  stream.close()
+  return result
