@@ -5,6 +5,7 @@ import math
 import yaml
 import time
 import os
+import Utils
 from std_msgs.msg import String
 from bpy.app.handlers import persistent
 import modes
@@ -26,12 +27,12 @@ class RoboBlender:
 
   def execute(self):
     rospy.init_node('robo_blender', anonymous=True)
-    rospy.Subscriber('cmd_blendermode', String, handle_blendermode)
+    rospy.Subscriber('cmd_blendermode', String, self.handle_blendermode)
     inputs.initialize(
-      Utils.read_yaml(os.path.join(config_dir, "inputs.yaml"))
+      Utils.read_yaml(os.path.join(self.config_dir, "inputs.yaml"))
     )
     outputs.initialize(
-      Utils.read_yaml(os.path.join(config_dir, "outputs.yaml"))
+      Utils.read_yaml(os.path.join(self.config_dir, "outputs.yaml"))
     )
 
     @persistent
@@ -51,7 +52,7 @@ class RoboBlender:
     modes.enable("SmartTrack")
 
   def __init__(self):
-    self.config = Utils.read_yaml(os.path.join(config_dir, "config.yaml"))
+    self.config = Utils.read_yaml(os.path.join(self.config_dir, "config.yaml"))
     self.frame_interval = 1.0/self.config["fps"]
 
 print("ROBO: Starting")
