@@ -1,9 +1,9 @@
-import inputs
 import sys
-import bpy
-import rospy
+import bpy, rospy
+import Utils
 from basic_head_api.msg import MakeFaceExpr
-import outputs
+import inputs, outputs
+import queue, math, random, time
 
 class SmartTrack:
 
@@ -74,10 +74,13 @@ class SmartTrack:
     def tick(self):
       facepos = inputs.get_instance("PiVision").location
       self.positions.put(facepos)
+
+      old = None
       while self.positions.qsize() >= self.fps:
         old = self.positions.get()
-      diff = facepos - old
-      self.distance = math.fabs(diff[0]) + math.fabs(diff[1]) + math.fabs(diff[2])
+      if old:
+        diff = facepos - old
+        self.distance = math.fabs(diff[0]) + math.fabs(diff[1]) + math.fabs(diff[2])
 
       if self.distance > 0.05:
         self.current_person += 1
@@ -134,7 +137,6 @@ class SmartTrack:
       self._queue(em,i,timer)
 
     def next(self):
-      ros.loginfo("current: ", self.current_person)
       # is meet and current face is detected
       if self.current_person > 10:
         if self.distance < 0.2 and self.current_intensity > 4:
@@ -167,38 +169,31 @@ class SmartTrack:
       self._em(em['e'],em['i'])
 
   def __init__(self):
-    self.fps = 25
     self.leftover_time = 0.0
 
-    self.behavior = Behavior(
+    self.config = Utils.read_yaml("smart_track.yaml", __file__)
+    self.fps = self.config["fps"]
+
+    self.behavior = self.Behavior(
       self.fps,
-      rospy.Publisher(self.config['emo_topic'], MakeFaceExpr)
+      rospy.Publisher(self.config['emo_topic'], MakeFaceExpr, queue_size=2)
     )
-    self.mTarget = MovingTarget(bpy.data.objects['headtarget'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.06)
-    self.mEyes = MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.09)
+    self.mTarget = self.MovingTarget(bpy.data.objects['headtarget'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.06)
+    self.mEyes = self.MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.09)
 
     self.neck_output = outputs.get_instance("neck_euler")
-
 
   def step(self, dt):
     # Execute tick() at the rate of self.fps
     dt = dt + self.leftover_time
     n = int(dt*self.fps)
-    self.leftover_time = dt*self.fps - n
+    self.leftover_time = dt - float(n)/self.fps
 
     for i in range(n):
       self.tick()
-
-    self.neck_output.transmit()
 
   def tick(self):
     self.behavior.tick()
     self.mTarget.move()
     self.mEyes.move()
-
-
-instance = None
-def init():
-  instance = SmartTrack()
-def step(dt):
-  instance.step(dt)
+    self.neck_output.transmit()

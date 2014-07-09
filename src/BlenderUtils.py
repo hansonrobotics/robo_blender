@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-def get_pose_matrix_in_other_space(self, mat, pose_bone):
+import bpy
+
+def get_pose_matrix_in_other_space(mat, pose_bone):
   """
   Returns the transform matrix relative to pose_bone's current
   transform space. In other words, presuming that mat is in
@@ -23,10 +25,10 @@ def get_pose_matrix_in_other_space(self, mat, pose_bone):
 
   return smat
 
-def get_local_pose_matrix(self, pose_bone):
+def get_local_pose_matrix(pose_bone):
   """Returns the local transform matrix of the given pose bone."""
-  return self.get_pose_matrix_in_other_space(pose_bone.matrix, pose_bone)
+  return get_pose_matrix_in_other_space(pose_bone.matrix, pose_bone)
 
-def get_bones_rotation_rad(self, armature, bone, axis):
-  mat = self.get_local_pose_matrix(bpy.data.objects[armature].pose.bones[bone])
+def get_bones_rotation_rad(armature, bone, axis):
+  mat = get_local_pose_matrix(bpy.data.objects[armature].pose.bones[bone])
   return getattr(mat.to_euler(), axis)

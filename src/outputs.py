@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import rospy
 import BlenderUtils
 import Utils
 
@@ -26,7 +27,7 @@ class Shelf:
       """
       keychain = Utils.DictKeyChain(singlebind_conf["varpath"].split(":"))
 
-      if singlebind_conf.has_key("bonerot"):
+      if "bonerot" in singlebind_conf:
         def blendergetter():
           return BlenderUtils.get_bones_rotation_rad(
             *singlebind_conf["bonerot"].split(":")
@@ -43,13 +44,12 @@ class Shelf:
       self.pub.publish(msg)
 
     def __init__(self, confentry):
-      __import__(confentry["msg"])
-      self.msgtype = sys.modules[confentry["msg"]]
-      self.pub = rospy.Publisher(confentry["pubtopic"], self.msgtype)
+      self.msgtype = Utils.import_member(confentry["msg"])
+      self.pub = rospy.Publisher(confentry["pubtopic"], self.msgtype, queue_size=2)
 
       self.processors = []
       for singlebind in confentry["binding"]:
-        self.processors.append(build_msg_setter(singlebind))
+        self.processors.append(self.build_msg_setter(singlebind))
 
 
 def build_single(confentry):
@@ -57,9 +57,10 @@ def build_single(confentry):
   return clazz(confentry)
 
 def initialize(fullconfig):
-  self.instances = {
+  global instances
+  instances = {
     confentry["name"]: build_single(confentry) for confentry in fullconfig
   }
 
 def get_instance(name):
-  return self.instances[name]
+  return instances[name]

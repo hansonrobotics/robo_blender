@@ -8,8 +8,7 @@ import os
 import Utils
 from std_msgs.msg import String
 from bpy.app.handlers import persistent
-import modes
-import inputs
+import modes, inputs, outputs
 
 class RoboBlender:
 
@@ -17,10 +16,10 @@ class RoboBlender:
 
   def handle_blendermode(self, msg):
     msg = msg.data
-    if msg == "off":
+    if msg == "disable":
       modes.disable()
     else:
-      modes.enable(msg.data)
+      modes.enable(msg)
 
   def step(self, dt):
     modes.step(dt)

@@ -5,6 +5,7 @@ from ros_nmpt_saliency.msg import targets
 from ros_faceshift.msg import fsMsgTrackingState
 import ShapekeyStore
 import Utils
+from mathutils import *
 
 __doc__ = """
 inputs.py is a module that holds classes and their instances that are
@@ -72,7 +73,7 @@ class Shelf:
         ci_sub.unregister()
       ci_sub = rospy.Subscriber('/camera/camera_info', CameraInfo, handle_camerainfo)
 
-      super(PiVision, self).__init__(confentry)
+      super(Shelf.PiVision, self).__init__(confentry)
 
 
   class NmptSaliency(_ObjectInBlender):
@@ -83,7 +84,7 @@ class Shelf:
     
     def __init__(self, confentry):
       rospy.Subscriber(confentry["sourcetopic"], targets, self.handle_source)
-      super(NmptSaliency, self).__init__(confentry)
+      super(Shelf.NmptSaliency, self).__init__(confentry)
 
 
   class Faceshift:
@@ -138,9 +139,10 @@ def build_single(confentry):
   return clazz(confentry)
 
 def initialize(fullconfig):
-  self.instances = {
+  global instances
+  instances = {
     confentry["inputclass"]: build_single(confentry) for confentry in fullconfig
   }
 
 def get_instance(classname):
-  return self.instances[classname]
+  return instances[classname]
