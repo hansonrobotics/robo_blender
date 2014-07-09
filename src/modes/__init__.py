@@ -5,6 +5,7 @@ import rospy
 import Utils
 
 __doc__ = """
+--Description--
 Package 'modes' holds modules that control the main flow of robot behavior.
 When a module is set active, its step() method is called at the fps set in
 config/config.yaml.
@@ -15,6 +16,16 @@ different module name. Currently only one module can be active at a time.
 
 Note: Not sure if enabling the modes repeatedly will cause the memory to leak.
 Keep an eye out.
+
+--Creating new modes--
+Just create a new python file inside the 'modes' directory. It will be found
+automatically.
+
+The new mode file (module) needs to have implemented either two methods on its
+top-level: init() and step(dt), or a class with the same name as the module
+with a constructor method and step(self, dt).
+
+Look at the example mode SmartTrack2.py for a reference.
 """
 
 active = None

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import rospy
+import bpy
 from sensor_msgs.msg import RegionOfInterest, CameraInfo
 from ros_nmpt_saliency.msg import targets
-from ros_faceshift.msg import fsMsgTrackingState
+from pau2motors.msg import pau
 import ShapekeyStore
 import Utils
 from mathutils import *
@@ -28,19 +29,24 @@ class _ObjectInBlender:
 
   def _set_object_location(self, point):
     if confentry["enabled"]:
-      binding = confentry["binding"]["objectpos"]
-      self.location = Vector(binding["offset"]) + point * binding["scale"]
-      bpy.data.objects[binding["name"]].location = self.location
+      self.location = Vector(self.binding["offset"]) + point * self.binding["scale"]
+      bpy.data.objects[self.binding["name"]].location = self.location
 
   def _confirm_object(self):
     """Create object with name specified in config if it's not there."""
-    if not bpy.data.objects.has_key(binding["name"]):
+    if not binding["name"] in bpy.data.objects:
       bpy.ops.mesh.primitive_cube_add(radius=0.024)
       bpy.context.selected_objects[0].name = binding["name"]
 
   def __init__(self, confentry):
     self.confentry = confentry
-    self.location = Vector()
+    self.binding = confentry["binding"]["objectpos"]
+
+    if self.binding["name"] in bpy.data.objects:
+      self.location = bpy.data.objects[self.binding["name"]].location
+    else:
+      self.location = Vector()
+      
 
 
 class Shelf:
@@ -88,6 +94,14 @@ class Shelf:
 
 
   class Faceshift:
+    """ 
+    Not tested. Needs modifications.
+
+    TODO: Figure out another approach instead of setting the shapekeys
+    directly to the primary mesh (this way no chance is given for the
+    controller to select and combine the faceshift input). Maybe we should map
+    faceshift input to another mesh placed next to the primary one.
+    """
 
     def build_set_bone_position(self, singlebind_dict):
       keychain = Utils.DictKeyChain(singlebind_dict["varpath"].split(":"))
@@ -127,7 +141,7 @@ class Shelf:
           self.build_set_bone_position(singlebind)
         )
 
-      rospy.Subscriber(confentry["sourcetopic"], fsMsgTrackingState, self.handle_source)
+      rospy.Subscriber(confentry["sourcetopic"], pau, self.handle_source)
 
 
 def build_single(confentry):
