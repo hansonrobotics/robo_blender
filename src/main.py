@@ -48,7 +48,7 @@ class RoboBlender:
     bpy.app.handlers.scene_update_pre.append(handle_scene_update)
 
     # Enable default mode
-    modes.enable("SmartTrack")
+    modes.enable("ManualHead")
 
   def __init__(self):
     self.config = Utils.read_yaml(os.path.join(self.config_dir, "config.yaml"))

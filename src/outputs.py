@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import rospy
-import BlenderUtils
-import Utils
+import Utils, BlenderUtils, ShapekeyStore
+import bpy
 
 __doc__ = """
 outputs.py is a module that holds classes and their instances that can, on
@@ -19,19 +19,31 @@ class Shelf:
 
   class ParametersOut:
 
-    def build_msg_setter(self, singlebind_conf):
+    def build_msg_setter(self, bindentry):
       """
       Returns a processor function, which will, on the given msg, set the
       parameter specified by 'keychain' to the value from blender data
       returned by 'blendergetter'.
       """
-      keychain = Utils.DictKeyChain(singlebind_conf["varpath"].split(":"))
+      keychain = Utils.DictKeyChain(bindentry["varpath"].split(":"))
 
-      if "bonerot" in singlebind_conf:
+      if "bonerot" in bindentry:
         def blendergetter():
           return BlenderUtils.get_bones_rotation_rad(
-            *singlebind_conf["bonerot"].split(":")
+            *bindentry["bonerot"].split(":")
           )
+      elif "shkey_mesh" in bindentry:
+        def blendergetter():
+          # Dictionary {shapekey: key_block object}.
+          key_blocks = (
+            bpy.data.meshes[bindentry["shkey_mesh"]].shape_keys.key_blocks
+          )
+          # List of shapekey coefficients.
+          coeffs = [
+            key_blocks[shapekey].value
+            for shapekey in ShapekeyStore.getIter()
+          ]
+          return coeffs
 
       def processor(msg):
         keychain.set_on(msg, blendergetter())
@@ -50,6 +62,29 @@ class Shelf:
       self.processors = []
       for singlebind in confentry["binding"]:
         self.processors.append(self.build_msg_setter(singlebind))
+
+  class CompositeOut:
+
+    # The inside of this function will only be executed once.
+    # self.outputs cannot be built inside __init__, because other outputs may
+    # not have been built at that point.
+    def transmit(self):
+      self.outputs = [
+        get_instance(output_name)
+        for output_name in self.confentry["outputs"]
+      ]
+
+      # Set _transmit() to be executed when transmit() is called from this
+      # point on
+      self.transmit = self._transmit
+      self.transmit()
+
+    def _transmit(self):
+      for output in self.outputs:
+        output.transmit()
+
+    def __init__(self, confentry):
+      self.confentry = confentry
 
 
 def build_single(confentry):

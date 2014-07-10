@@ -13,6 +13,7 @@ class SmartTrack2:
   def step(self, dt):
     primary.point_head_at(self.face_input.location)
     self.exprs.step(dt)
+    self.neck_output.transmit()
 
   def __init__(self):
     self.face_input = inputs.get_instance("PiVision")

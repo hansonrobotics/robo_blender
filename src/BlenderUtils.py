@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import bpy
+from mathutils import Matrix
 
 def get_pose_matrix_in_other_space(mat, pose_bone):
   """

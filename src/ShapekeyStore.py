@@ -61,3 +61,8 @@ def getIndex(shapekey):
 
 def getString(index):
   return _shkey_list[index]
+
+def getIter():
+  # Returns iterator instead of the list to prevent outside users from
+  # modifying it.
+  return iter(_shkey_list)
