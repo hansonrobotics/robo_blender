@@ -181,8 +181,6 @@ class SmartTrack:
     self.mTarget = self.MovingTarget(bpy.data.objects['headtarget'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.06)
     self.mEyes = self.MovingTarget(bpy.data.objects['eyefocus'],bpy.data.objects['pivision'],bpy.data.objects['nose'].location,0.09)
 
-    self.neck_output = outputs.get_instance("neck_euler")
-
   def step(self, dt):
     # Execute tick() at the rate of self.fps
     dt = dt + self.leftover_time
@@ -196,4 +194,4 @@ class SmartTrack:
     self.behavior.tick()
     self.mTarget.move()
     self.mEyes.move()
-    self.neck_output.transmit()
+    outputs.neck_euler.transmit()

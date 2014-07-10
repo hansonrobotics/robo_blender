@@ -11,7 +11,4 @@ class ManualHead:
   """
 
   def step(self, dt):
-    self.head_output.transmit()
-
-  def __init__(self):
-    self.head_output = outputs.get_instance("full_head")
+    outputs.full_head.transmit()
