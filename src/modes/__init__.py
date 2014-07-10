@@ -21,9 +21,8 @@ Keep an eye out.
 Just create a new python file inside the 'modes' directory. It will be found
 automatically.
 
-The new mode file (module) needs to have implemented either two methods on its
-top-level: init() and step(dt), or a class with the same name as the module
-with a constructor method and step(self, dt).
+The new mode file (module) needs to have a class with the same name as the
+module with a step(self, dt) method.
 
 Look at the example mode SmartTrack2.py for a reference.
 """
@@ -31,26 +30,22 @@ Look at the example mode SmartTrack2.py for a reference.
 active = None
 
 def enable(mode_name):
-  # Find the module with the same name in this package.
-  module_name = __name__ + "." + mode_name
+  module_name = ".".join([__name__, mode_name])
+  member_name = ".".join([__name__] + [mode_name]*2)
   try:
-    # Search for a class inside the module with the same name.
-    member_name = module_name + "." + mode_name
     mode = Utils.import_member(member_name)
-    rospy.loginfo("Enabling class %s as the active mode" % member_name)
+    rospy.loginfo("Activating mode %s" % mode_name)
+  except ImportError:
+    rospy.loginfo("Couldn't find module %s" % module_name)
+    return
   except AttributeError:
-    # If couldn't find the class, use the module itself.
-    mode = importlib.import_module(module_name)
-    rospy.loginfo("Enabling module %s as the active mode" % module_name)
+    rospy.loginfo("Couldn't find class %s" % member_name)
+    return
 
   # Taking this out of the try-except block to not catch AttributeErrors
   # during initialization.
   global active
-  if inspect.isclass(mode):
-    active = mode()
-  else:
-    mode.init()
-    active = mode    
+  active = mode() 
 
 def disable():
   global active

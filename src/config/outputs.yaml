@@ -1,5 +1,5 @@
 - name: neck_euler
-  inputclass: ParametersOut
+  class: ParametersOut
   enabled: true
   pubtopic: point_head
   msg: basic_head_api.msg.PointHead
@@ -12,7 +12,7 @@
       bonerot: Armature:bracket2:z
 
 - name: face
-  inputclass: ParametersOut
+  class: ParametersOut
   enabled: true
   pubtopic: cmd_face_pau
   msg: pau2motors.msg.pau
@@ -21,7 +21,7 @@
       shkey_mesh: Head
 
 - name: eyes
-  inputclass: ParametersOut
+  class: ParametersOut
   enabled: true
   pubtopic: cmd_eyes_pau
   msg: pau2motors.msg.pau
@@ -36,7 +36,7 @@
       bonerot: reye:reyebone:z
 
 - name: full_head
-  inputclass: CompositeOut
+  class: CompositeOut
   enabled: true
   outputs:
     - neck_euler
