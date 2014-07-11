@@ -23,7 +23,7 @@ class DictKeyChain:
     return host
 
   def get_from(self, host):
-    return self._get_from(host, key_list)
+    return self._get_from(host, self.key_list)
 
   def set_on(self, host, val):
     host = self._get_from(host, self.key_list[:-1])

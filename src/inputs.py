@@ -117,7 +117,7 @@ class Shelf:
       return processor
 
     def handle_source(self, msg):
-      if not confentry["enabled"]:
+      if not self.confentry["enabled"]:
         return
 
       # Apply shapekeys
