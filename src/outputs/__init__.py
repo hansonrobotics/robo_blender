@@ -3,7 +3,6 @@ import inspect
 import sys
 
 __doc__ = """
-
 'outputs' is a package that holds classes and their instances that can, on
 command, send parts of the current Blender state to ROS network. You can
 access output.yaml config entries as members of outputs package.
@@ -20,8 +19,11 @@ def _get_class(name):
   member_name = ".".join([__name__] + [name]*2)
   try:
     return Utils.import_member(member_name)
-  except ImportError:
-    raise NameError("Couldn't find module %s" % module_name)
+  except ImportError as err:
+    if err.name == module_name:
+      raise NameError("Couldn't find module %s" % module_name)
+    else:
+      raise
   except AttributeError:
     raise NameError("Couldn't find class %s" % member_name)
 

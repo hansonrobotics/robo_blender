@@ -72,7 +72,7 @@ class SmartTrack:
       self.pub = pub
 
     def tick(self):
-      facepos = inputs.get_instance("PiVision").location
+      facepos = inputs.get_instance("pivision").location
       self.positions.put(facepos)
 
       old = None

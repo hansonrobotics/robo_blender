@@ -1,26 +1,29 @@
-- inputclass: Faceshift
+- name: faceshift
+  class: Faceshift
   enabled: false
   sourcetopic: faceshift_track
   binding:
     meshname: Head
-    singles:
-      - varpath: m_headRotation:x
-        bonerot: Armature:bracket3:x
-      - varpath: m_headRotation:y
-        bonerot: Armature:base:y
-      - varpath: m_headRotation:z
-        bonerot: Armature:bracket2:z
+    singles: []
+      #- varpath: m_headRotation:x
+      #  bonerot: Armature:bracket3:x
+      #- varpath: m_headRotation:y
+      #  bonerot: Armature:base:y
+      #- varpath: m_headRotation:z
+      #  bonerot: Armature:bracket2:z
 
-- inputclass: NmptSaliency
+- name: nmpt_saliency
+  class: RegionOfInterest
   enabled: true
   sourcetopic: nmpt_roi
   binding:
     objectpos:
-      name: saliency
+      name: saliency #The name of the object in Blender
       offset: [0.008,-1,0.458737]
       scale: 1.5
 
-- inputclass: PiVision
+- name: pivision
+  class: RegionOfInterest
   enabled: true
   sourcetopic: roi
   binding:

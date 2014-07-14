@@ -36,10 +36,10 @@ def enable(mode_name):
     mode = Utils.import_member(member_name)
     rospy.loginfo("Activating mode %s" % mode_name)
   except ImportError:
-    rospy.loginfo("Couldn't find module %s" % module_name)
+    rospy.logwarn("Couldn't find module %s" % module_name)
     return
   except AttributeError:
-    rospy.loginfo("Couldn't find class %s" % member_name)
+    rospy.logwarn("Couldn't find class %s" % member_name)
     return
 
   # Taking this out of the try-except block to not catch AttributeErrors

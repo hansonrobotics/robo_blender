@@ -16,7 +16,7 @@ class SmartTrack2:
     outputs.neck_euler.transmit()
 
   def __init__(self):
-    self.face_input = inputs.get_instance("PiVision")
+    self.face_input = inputs.store.pivision
     self.exprs = demo_loops.SmoothExpressions(
       rospy.Publisher("make_face_expr", MakeFaceExpr, queue_size=2)
     )

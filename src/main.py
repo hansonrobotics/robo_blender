@@ -48,6 +48,7 @@ class RoboBlender:
       modes.enable(msg)
 
   def step(self, dt):
+    inputs.execute_pending()
     modes.step(dt)
 
   def execute(self):
