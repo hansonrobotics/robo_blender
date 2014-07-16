@@ -87,9 +87,9 @@ class InstanceStore:
     self._instances = {}
     for confentry in fullconfig:
       if confentry["name"][0] == "_":
-        raise NameError("Output name %s can't start with _" % confentry["name"])
+        raise NameError("Input name %s can't start with _" % confentry["name"])
       if confentry["name"] in self.orig_members:
-        raise NameError("Output name %s is reserved" % confentry["name"])
+        raise NameError("Input name %s is reserved" % confentry["name"])
       self._store_instance(confentry["name"], self._build_single(confentry))
 
 def initialize(fullconfig):

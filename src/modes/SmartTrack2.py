@@ -13,7 +13,7 @@ class SmartTrack2:
   def step(self, dt):
     primary.point_head_at(self.face_input.location)
     self.exprs.step(dt)
-    outputs.neck_euler.transmit()
+    #outputs.store.neck_euler.transmit()
 
   def __init__(self):
     self.face_input = inputs.store.pivision

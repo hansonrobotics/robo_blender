@@ -2,6 +2,7 @@ import inspect
 import Utils, BlenderUtils, ShapekeyStore
 import bpy
 import rospy
+from . import StateOutputBase
 
 class BlenderGetterFactory:
 
@@ -26,9 +27,9 @@ class BlenderGetterFactory:
       return coeffs
     return func
 
-class ParametersOut:
+class ParametersOut(StateOutputBase):
 
-  def build_msg_setter(self, bindentry):
+  def build_processor(self, bindentry):
     """
     Returns a processor function, which will, on the given msg, set the
     parameter specified by 'keychain' to the value from blender data
@@ -49,10 +50,14 @@ class ParametersOut:
     return processor
 
   def transmit(self):
+    msg = self.build_msg()
+    self.pub.publish(msg)
+
+  def build_msg(self):
     msg = self.msgtype()
     for processor in self.processors:
       processor(msg)
-      self.pub.publish(msg)
+    return msg
 
   def __init__(self, confentry):
     self.msgtype = Utils.import_member(confentry["msg"])
@@ -60,4 +65,4 @@ class ParametersOut:
 
     self.processors = []
     for singlebind in confentry["binding"]:
-      self.processors.append(self.build_msg_setter(singlebind))
+      self.processors.append(self.build_processor(singlebind))

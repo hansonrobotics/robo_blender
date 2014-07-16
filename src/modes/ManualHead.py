@@ -11,4 +11,4 @@ class ManualHead:
   """
 
   def step(self, dt):
-    outputs.full_head.transmit()
+    outputs.store.full_head.transmit()

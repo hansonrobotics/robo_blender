@@ -1,6 +1,7 @@
-from . import get_instance
+from .. import get_instance
+from . import StateOutputBase
 
-class CompositeOut:
+class CompositeOut(StateOutputBase):
 
   # The inside of this function will only be executed once.
   # self.outputs cannot be built inside __init__, because other outputs may

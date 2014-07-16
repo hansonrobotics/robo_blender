@@ -194,4 +194,4 @@ class SmartTrack:
     self.behavior.tick()
     self.mTarget.move()
     self.mEyes.move()
-    outputs.neck_euler.transmit()
+    outputs.store.neck_euler.transmit()
