@@ -19,14 +19,14 @@ class FrameMap:
     # 'cls' hold the FrameMap class
     # Asterix below means the list str.split(":") will be expanded into
     # arguments frame_start, frame_end, min_duration
-    cls(*str.split(":"))
+    return cls(*str.split(":"))
 
   def __init__(self, frame_start, frame_end, min_duration):
     self.frame_start = frame_start
     self.frame_end = frame_end
     self.min_duration = min_duration
 
-class Animation:
+class TimelineAnimation:
   """
   This output can build and send an animation out, if you give the
   animation's location (FrameMap instance).

@@ -44,5 +44,5 @@
     - eyes
 
 - name: animation
-  class: Animation
+  class: TimelineAnimation
   enabled: false
