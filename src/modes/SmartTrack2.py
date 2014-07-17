@@ -1,5 +1,6 @@
 from .controllers import primary
 from .controllers import demo_loops
+from .controllers import tracking
 import inputs, outputs
 import rospy
 from basic_head_api.msg import MakeFaceExpr
@@ -11,12 +12,12 @@ class SmartTrack2:
   """
 
   def step(self, dt):
-    primary.point_head_at(self.face_input.location)
+    self.tracking_ctrl.step(dt)
     self.exprs.step(dt)
     #outputs.store.neck_euler.transmit()
 
   def __init__(self):
-    self.face_input = inputs.store.pivision
     self.exprs = demo_loops.SmoothExpressions(
       rospy.Publisher("make_face_expr", MakeFaceExpr, queue_size=2)
     )
+    self.tracking_ctrl = tracking.TrackSaccadeCtrl(inputs.store.pivision)
