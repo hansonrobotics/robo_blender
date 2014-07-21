@@ -1,3 +1,4 @@
+#--PAU head outputs--
 - name: neck_euler
   class: state.ParametersOut
   enabled: true
@@ -43,6 +44,19 @@
     - face
     - eyes
 
+#--Motor-Coupled outputs
+- name: bone_array
+  class: state.ParametersOut
+  enabled: false
+  pubtopic: cmd_joints
+  msg: trajectory_msgs.msg.JointTrajectory
+  binding:
+    - varpath: joint_names
+      childbones_name: Armature
+    - varpath: points:0:positions
+      childbones_rot: Armature:z
+
+#--Zeno-Specific outputs--
 - name: animation
   class: TimelineAnimation
   enabled: false

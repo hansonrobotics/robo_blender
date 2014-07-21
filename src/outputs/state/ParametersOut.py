@@ -27,6 +27,19 @@ class BlenderGetterFactory:
       return coeffs
     return func
 
+  @staticmethod
+  def childbones_name(bindentry):
+    armature = bindentry["childbones_name"]
+    return lambda: [bone for bone in bpy.data.objects[armature].pose.bones.keys()]
+
+  @staticmethod
+  def childbones_rot(bindentry):
+    armature, axis = bindentry["childbones_rot"].split(":")
+    return lambda: [
+      BlenderUtils.get_bones_rotation_rad(armature, bone, axis)
+      for bone in bpy.data.objects[armature].pose.bones.keys()
+    ]
+
 class ParametersOut(StateOutputBase):
 
   def build_processor(self, bindentry):
@@ -35,6 +48,11 @@ class ParametersOut(StateOutputBase):
     parameter specified by 'keychain' to the value from blender data
     returned by 'blendergetter'.
     """
+
+    # Find a function in BlenderGetterFactory whose name is in the bindentry.
+    # I.e. if "bonerot" in bindentry:
+    #        blendergetter_builder = BlenderGetterFactory.bonerot
+    # etc.
     try:
       blendergetter_builder = [
         getattr(BlenderGetterFactory, key) for key in bindentry
@@ -43,10 +61,10 @@ class ParametersOut(StateOutputBase):
     except Exception:
       raise NameError("Unable to bind %s" % bindentry)
 
-    keychain = Utils.DictKeyChain(bindentry["varpath"].split(":"))
+    keychain = Utils.RosMsgKeyChain(bindentry["varpath"].split(":"))
     blendergetter = blendergetter_builder(bindentry)
     def processor(msg):
-      keychain.set_on(msg, blendergetter())
+      keychain.hard_set_on(msg, blendergetter())
     return processor
 
   def transmit(self):

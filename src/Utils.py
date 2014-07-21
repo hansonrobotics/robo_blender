@@ -2,6 +2,10 @@
 import yaml
 import os
 import importlib
+import genpy
+import roslib.message
+import copy
+import re
 
 class DictKeyChain:
   """
@@ -41,6 +45,65 @@ class DictKeyChain:
         else key,
       key_list
     ))
+
+class RosMsgKeyChain(DictKeyChain):
+
+  list_brackets = re.compile(r'\[[^\]]*\]$')
+
+  @classmethod
+  def _get_ros_arr_class(cls, arr_host, key):
+    #E.g. trajectory_msgs/JointTrajectoryPoint[]
+    arr_type = dict(zip(arr_host.__slots__, arr_host._slot_types))[key]
+    #E.g. trajectory_msgs/JointTrajectoryPoint
+    entry_type = cls.list_brackets.sub('', arr_type)
+    return roslib.message.get_message_class(entry_type)
+
+  @classmethod
+  def _hard_get_from(cls, host, key_list):
+    for key in key_list:
+      if isinstance(host, list):
+        key = int(key)
+        if key > len(host):
+          raise IndexError("Index %d of %s is out of bounds." % key, host)
+        elif key == len(host):
+          # We can find what class is appropriate to append to this list by
+          # looking at the parent of this list.
+          host.append(cls._get_ros_arr_class(*prev_hostkey)())
+
+      prev_hostkey = (host, key)
+      if isinstance(host, list):
+        host = host[key]
+      else:
+        host = getattr(host, key)
+    return host
+
+  @staticmethod
+  def _hard_set_on(host, key, val):
+    if isinstance(host, list):
+      key = int(key)
+      if key > len(host):
+        raise IndexError("Index %d of %s is out of bounds." % key, host)
+      elif key == len(host):
+        host.append(val)
+      else:
+        host[key] = val
+    else:
+      setattr(host, key, val)
+
+  def hard_set_on(self, host, val):
+    """
+    Behaves like set_on(self, host, val), except this method creates necessary
+    nested ROS messages on its way to the end of the keychain.
+
+    E.g. Key chain ["points", "0", "positions"] applied with this method to an
+    empty JointTrajectory instance would append the empty "points" list with a
+    JointTrajectoryPoint instance and set its "positions" attribute to the
+    given val.
+    """
+    host = self._hard_get_from(host, self.key_list[:-1])
+    key = self.key_list[-1]
+    self._hard_set_on(host, key, val)
+
 
 def read_yaml(yamlname, loader_filepath=None):
   """
