@@ -14,26 +14,18 @@ class PersistentParams:
 
   dictname = "robo_blender"
 
-  @staticmethod
-  def _get_prop_group(dictname):
-    for name, scene in bpy.data.scenes.items():
-      if dictname in scene.keys():
-        return scene[dictname]
-    return None
-
   def get(self, key):
-    return self.prop_group.get(key)
+    return bpy.data.scenes[0][self.dictname].get(key)
 
   def set(self, key, val):
-    self.prop_group[key] = val
+    bpy.data.scenes[0][self.dictname][key] = val
 
   def __init__(self):
-    prop_group = self._get_prop_group(self.dictname)
-    if prop_group == None:
+    #If bpy.data.scenes[0] is stored locally, referencing it often causes Blender
+    #to crash after Ctrl+Z (undo) is pressed.
+    #Referencing the scene only from within bpy seems to work fine though.
+    if not self.dictname in bpy.data.scenes[0].keys():
       bpy.data.scenes[0][self.dictname] = {}
-      prop_group = bpy.data.scenes[0][self.dictname]
-
-    self.prop_group = prop_group
 
 
 class RoboBlender:
