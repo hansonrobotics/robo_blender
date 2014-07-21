@@ -5,10 +5,13 @@ import rospy
 
 __doc__ = """
 'outputs' is a package that holds classes and their instances that can, on
-command, send parts of the current Blender state to ROS network. You can
-access output.yaml config entries as members of outputs package.
+command, send parts of the current (or stored?) Blender state to ROS network.
 
-E.g. The instance outputs.neck_euler of class ParametersOut will, when
+Output instances can be reached by either:
+outputs.store.<instancename> or outputs.get_instance(<instancename>),
+where <instancename> can be neck_euler, eyes, etc.
+
+E.g. The instance outputs.store.neck_euler of class ParametersOut will, when
 transmit() method is called, send a message containing the current neck joint
 positions in Blender space to basic_head_api as yaw, pitch and roll rotations.
 
