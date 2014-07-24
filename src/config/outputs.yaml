@@ -4,7 +4,7 @@
   enabled: false
   pubtopic: point_head
   msg: basic_head_api.msg.PointHead
-  binding:
+  binding: #bonerot format: armature_obj:bone:axis
     - varpath: yaw
       bonerot: Armature:base:y
     - varpath: pitch
@@ -52,6 +52,7 @@
   outputs:
     - face
     - eyes_beorn
+    - neck_euler_beorn
 
 - name: eyes_beorn
   class: state.ParametersOut
@@ -67,6 +68,19 @@
       bonerot: Armature:reyebone:x
     - varpath: m_eyeGazeRightYaw
       bonerot: Armature:reyebone:z
+
+- name: neck_euler_beorn
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: point_head
+  msg: basic_head_api.msg.PointHead
+  binding: #bonerot format: armature_obj:bone:axis[:parent_bone]
+    - varpath: yaw
+      bonerot: Armature:neck_base:y
+    - varpath: pitch
+      bonerot: Armature:bracket3.001:x:neck_base #Sums up both pitch motors
+    - varpath: roll
+      bonerot: Armature:bracket3.001:z:neck_base
 
 #--Motor-Coupled outputs
 - name: bone_array

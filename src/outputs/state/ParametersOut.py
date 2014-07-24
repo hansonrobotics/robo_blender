@@ -20,7 +20,9 @@ class BlenderGetterFactory:
       try:
         return [key_blocks[shapekey].value for shapekey in iterator]
       except KeyError as err:
-        rospy.loginfo("Shapekey %s in mesh %s", err, mesh)
+        rospy.loginfo("%s not compatible: shapekey %s in mesh %s",
+          shkeystore.__name__, err, mesh
+        )
         return None
 
     # Pick which ShapekeyStore to use
@@ -28,6 +30,7 @@ class BlenderGetterFactory:
       store for store in [ShapekeyStore, ShapekeyStore2]
       if get_coeffs(store, bpy.data.meshes[mesh].shape_keys.key_blocks)
     ][0]
+    rospy.loginfo("Using %s for %s output", _shkeystore.__name__, mesh)
 
     def func():
       # Dictionary {shapekey: key_block object}.
