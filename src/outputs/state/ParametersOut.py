@@ -1,5 +1,5 @@
 import inspect
-import Utils, BlenderUtils, ShapekeyStore
+import Utils, BlenderUtils, ShapekeyStore, ShapekeyStore2
 import bpy
 import rospy
 from . import StateOutputBase
@@ -14,17 +14,28 @@ class BlenderGetterFactory:
   @staticmethod
   def shkey_mesh(bindentry):
     mesh = bindentry["shkey_mesh"]
+
+    def get_coeffs(shkeystore, key_blocks):
+      iterator = shkeystore.getIter()
+      try:
+        return [key_blocks[shapekey].value for shapekey in iterator]
+      except KeyError as err:
+        rospy.loginfo("Shapekey %s in mesh %s", err, mesh)
+        return None
+
+    # Pick which ShapekeyStore to use
+    _shkeystore = [
+      store for store in [ShapekeyStore, ShapekeyStore2]
+      if get_coeffs(store, bpy.data.meshes[mesh].shape_keys.key_blocks)
+    ][0]
+
     def func():
       # Dictionary {shapekey: key_block object}.
       key_blocks = (
         bpy.data.meshes[mesh].shape_keys.key_blocks
       )
       # List of shapekey coefficients.
-      coeffs = [
-        key_blocks[shapekey].value
-        for shapekey in ShapekeyStore.getIter()
-      ]
-      return coeffs
+      return get_coeffs(_shkeystore, key_blocks)
     return func
 
   @staticmethod

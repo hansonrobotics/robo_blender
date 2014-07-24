@@ -1,7 +1,7 @@
-#--PAU head outputs--
+#--Original head rig outputs--
 - name: neck_euler
   class: state.ParametersOut
-  enabled: true
+  enabled: false
   pubtopic: point_head
   msg: basic_head_api.msg.PointHead
   binding:
@@ -23,7 +23,7 @@
 
 - name: eyes
   class: state.ParametersOut
-  enabled: true
+  enabled: false
   pubtopic: cmd_eyes_pau
   msg: pau2motors.msg.pau
   binding:
@@ -36,13 +36,37 @@
     - varpath: m_eyeGazeRightYaw
       bonerot: reye:reyebone:z
 
+
+#- name: full_head
+#  class: state.CompositeOut
+#  enabled: true
+#  outputs:
+#    - neck_euler
+#    - face
+#    - eyes
+
+#--Beorn rig outputs--
 - name: full_head
   class: state.CompositeOut
   enabled: true
   outputs:
-    - neck_euler
     - face
-    - eyes
+    - eyes_beorn
+
+- name: eyes_beorn
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: cmd_eyes_pau
+  msg: pau2motors.msg.pau
+  binding:
+    - varpath: m_eyeGazeLeftPitch
+      bonerot: Armature:leyebone:x
+    - varpath: m_eyeGazeLeftYaw
+      bonerot: Armature:leyebone:z
+    - varpath: m_eyeGazeRightPitch
+      bonerot: Armature:reyebone:x
+    - varpath: m_eyeGazeRightYaw
+      bonerot: Armature:reyebone:z
 
 #--Motor-Coupled outputs
 - name: bone_array
