@@ -1,5 +1,6 @@
 from .controllers import tracking
 import bpy
+import inputs
 
 class TrackDev:
 
@@ -7,4 +8,4 @@ class TrackDev:
     self.ctrl.step(dt)
 
   def __init__(self):
-    self.ctrl = tracking.TrackSaccadeCtrl(bpy.data.objects["pivision"])
+    self.ctrl = tracking.TrackSaccadeCtrl(inputs.store.pivision)
