@@ -2,6 +2,21 @@ import bpy
 import rospy
 import math
 from mathutils import *
+import time
+from trajectory_msgs.msg import JointTrajectory
+
+__desc__ = """
+UI for creating bone arrays out of ROS param server and transmitting their
+rotations to ROS.
+
+This should work both as a script and as an addon (if it's installed through
+Blender preferences).
+
+TODO:
+ - Finish TransmitManager (specifically _build_msg), also test.
+ - Add bone array scale/location/rotation locks in edit mode,
+   and in pose mode too except the z rotation.
+"""
 
 bl_info = {
     "name": "Bone Array Utilities",
@@ -9,10 +24,14 @@ bl_info = {
 }
 
 # Name of the animation channels group.
-# Used to distinguish between robot bone arrays and other armatures.
+# Used to distinguish between robot bone arrays from other armatures.
 GROUP_NAME = "Array Rots"
 
 def get_by_type(array, val):
+  """
+  Returns an entry in the given array, which has the 'type' attributes of the
+  given value.
+  """
   for el in array:
     if getattr(el, "type", NotImplemented) == val:
       return el
@@ -30,11 +49,78 @@ def robo_props():
   """Get the RoboBlenderProps instance."""
   return bpy.data.scenes[0].robo_blender
 
+def roscore_running():
+  """
+  Checks whether it can connect to roscore and stores that in the
+  RoboBlenderProps instance.
+  """
+  try:
+    rospy.get_param_names()
+  except ConnectionRefusedError:
+    robo_props().connected = False
+    return False
+  robo_props().connected = True
+  return True
+
+class TransmitManager:
+  """ Handles bone array rotation transmissions to ROS """
+
+  objects_on = [] # An array of objects that are on for transmission
+  publishers = {} # Maps topic names to publisher instances
+
+  def turn_on(self, obj):
+    objects_on.append(obj)
+
+  def turn_off(self, obj):
+    objects_of.remove(obj)
+
+    # Remove publisher
+    topic = self._get_topic(obj)
+    if topic in publishers:
+      del publishers[topic]
+
+  @staticmethod
+  def _get_topic(obj):
+    return obj.p2m_config.namespace + "/cmd_joints"
+
+  @staticmethod
+  def _build_msg(obj):
+    for bone in obj.pose.bones:
+      bone.rotation_euler[2]
+
+  def _transmit(self, obj):
+    topic = self._get_topic(obj)
+
+    # Add publisher
+    if not topic in publishers:
+      publishers[topic] = rospy.Publisher(
+        topic, JointTrajectory, queue_size=2
+      )
+
+    publishers[topic].pub(self._build_msg(obj))
+
+  @persistent
+  def handle_scene_update(self, context):
+    # Shut down if 'Run Script' was pressed again.
+    if robo_props().script_id != script_id
+      bpy.app.handlers.scene_update_post.remove(self.handle_scene_update)
+      return
+
+    for ob in objects_on:
+      self._transmit(ob)
+
+  def __init__(self):
+    for ob in bpy.data.objects:
+      if ob.bonearr_transmit:
+        self.objects_on.append(ob)
+
+    bpy.app.handlers.scene_update_post.append(self.handle_scene_update)
+
 #--Operators--
 
 class SelectArray(bpy.types.Operator):
   bl_idname = "robo.bonearr_select"
-  bl_label = "Select and Activate"
+  bl_label = "Select Bones in Pose Mode"
   bl_description = "Enable pose mode, select all the bones in the array and filter everything that's not selected out"
 
   @classmethod
@@ -69,11 +155,17 @@ class P2MRefresh(bpy.types.Operator):
   def execute(self, context):
     configs = robo_props().p2m_configs
     configs.clear()
-    for ns in get_namespaces_containing("pau2motors"):
-      p2m_config = configs.add()
-      p2m_config.name = ns
-      p2m_config["params"] = rospy.get_param(ns+"/pau2motors")
-    return {'FINISHED'}
+
+    if roscore_running():
+      for ns in get_namespaces_containing("pau2motors"):
+        p2m_config = configs.add()
+        p2m_config.name = ns if len(ns) > 0 else "<global namespace>"
+        p2m_config.namespace = ns
+        p2m_config["params"] = rospy.get_param(ns+"/pau2motors")
+      return {'FINISHED'}
+    else:
+      return {'CANCELLED'}
+    
 
 class P2MCreateArray(bpy.types.Operator):
   bl_idname = "robo.p2m_create_bonearr"
@@ -82,15 +174,15 @@ class P2MCreateArray(bpy.types.Operator):
   
   @classmethod
   def poll(self, context):
-    return len(robo_props().p2m_configs) > 0
+    return robo_props().connected and len(robo_props().p2m_configs) > 0
 
   @staticmethod
-  def _create_armature(namespace):
+  def _create_armature(name):
+    """ Argument 'name' can be a namespace or string '<global namespace>' """
     if bpy.context.mode != "OBJECT":
       bpy.ops.object.mode_set(mode="OBJECT")
-    name = "Bone Array (%s)" % namespace
-    armature = bpy.data.armatures.new(name)
-    ob = bpy.data.objects.new(name, armature)
+    armature = bpy.data.armatures.new("Bone Array (%s)" % name)
+    ob = bpy.data.objects.new("Bone Array (%s)" % name, armature)
 
     #Rotate 90 degrees
     ob.rotation_euler = Euler((math.pi/2, 0, 0), "XYZ")
@@ -98,7 +190,7 @@ class P2MCreateArray(bpy.types.Operator):
     #Create an empty action to add animation channels in
     ob.animation_data_create()
     ob.animation_data.action = bpy.data.actions.new(
-      name="Blank %s Action" % namespace
+      name="Blank %s Action" % name
     )
 
     #Link new armature to scene
@@ -146,6 +238,9 @@ class P2MCreateArray(bpy.types.Operator):
       new_bone = self._create_bone(motor_name, motor_entry)
       new_bone.head, new_bone.tail = next(location_gen)
 
+    #Associate the config with the object for rotation transmission
+    context.active_object.p2m_config = p2m_config
+
     #Shown animation channels in Dope Sheet and Graph Editor
     bpy.ops.robo.bonearr_select()
 
@@ -162,10 +257,10 @@ class RoboArrayPanel(bpy.types.Panel):
   def draw(self, context):
     layout = self.layout
 
-    obj = context.object
+    ob = context.active_object
 
-    row = layout.row()
-    row.label(text="Hello world!", icon='WORLD_DATA')
+    box = layout.row().box()
+    box.prop(ob, 'bonearr_transmit', toggle=True)
 
     row = layout.row()
     row.operator("robo.bonearr_select")
@@ -190,12 +285,14 @@ class CreatePanel(bpy.types.Panel):
   def draw(self, context):
     layout = self.layout
     
-    layout.row().label("Robots in ROS parameter server")
-    
-    obj = robo_props()
-    layout.row().template_list("UI_UL_list", "custom", obj, "p2m_configs",
-      obj, "p2m_active")
-    
+    if robo_props().connected:
+      layout.row().label("Robots in ROS parameter server")
+      obj = robo_props()
+      layout.row().template_list("UI_UL_list", "custom", obj, "p2m_configs",
+        obj, "p2m_active")
+    else:
+      layout.row().label("Roscore not running")
+
     row = layout.row()
     row.operator("robo.p2m_refresh")
     row.operator("robo.p2m_create_bonearr")
@@ -209,19 +306,45 @@ class CreatePanel(bpy.types.Panel):
 class RoboBlenderProps(bpy.types.PropertyGroup):
 
   class P2MConfig(bpy.types.PropertyGroup):
-    name = bpy.props.StringProperty() #Namespace in which the config was found.
+    # Either the same as namespace or string '<global namespace>'
+    name = bpy.props.StringProperty()
+    # Namespace in which the config was found.
+    namespace = bpy.props.StringProperty()
 
     # Also holds ID property "params", which holds the config entry.
     # Reference it with p2m_config[<propname>] instead of p2m_config.<propname>
 
   p2m_configs = bpy.props.CollectionProperty(type=P2MConfig)
   p2m_active = bpy.props.IntProperty()
+  connected = bpy.props.BoolProperty()
+
+  # Used to execute callbacks on only a single script.
+  script_id = bpy.props.IntProperty()
   
 #--Module registration--
 
+#Unique to this script run
+script_id = int(time.time()*1000)
+
 def register():
   bpy.utils.register_module(__name__)
+
+  #Stores most of the data required to communicate between method runs in this file.
+  #Get this object with robo_props()
   bpy.types.Scene.robo_blender = bpy.props.PointerProperty(type=RoboBlenderProps)
+  robo_props().script_id = script_id # Save the latest script id on the scene data
+
+  #Specifies whether to transmit rotations of this bone array to ROS.
+  bpy.types.Object.bonearr_transmit = bpy.props.BoolProperty(
+    name="Transmit Rotations", update=on_bonearr_transmit_update
+  )
+  #Stores the config from which the array was created.
+  bpy.types.Object.p2m_config = bpy.props.PointerProperty(type=P2MConfig)
+
+  global tx_manager
+  tx_manager = TransmitManager()
+
+  bpy.ops.robo.p2m_refresh()
     
 def unregister():
   del bpy.types.Scene.robo_blender
@@ -229,3 +352,11 @@ def unregister():
 
 if __name__ == "__main__":
   register()
+
+# Would have placed this function inside TransmitManager, but 'self' gets
+# overriden in that case.
+def on_bonearr_transmit_update(self, context):
+  if self.bonearr_transmit:
+    tx_manager.turn_on(self)
+  else:
+    tx_manager.turn_off(self)
