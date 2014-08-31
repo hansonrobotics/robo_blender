@@ -38,7 +38,7 @@ class SaccadePipe:
     self.interval = random.gauss(*self.interval_mu_sig)
     self.offset = self.random_vector(self.radius)
 
-  def __init__(self, radius=0.1, interval_mu_sig=(1.5, 0.8)):
+  def __init__(self, radius=0.3, interval_mu_sig=(1.5, 0.8)):
     self.radius = radius
     self.interval_mu_sig = interval_mu_sig
     self.clear_time()

@@ -80,7 +80,7 @@ class RoboBlender:
     bpy.app.handlers.scene_update_pre.append(handle_scene_update)
 
     # Enable default mode
-    modes.enable("ManualHead")
+    modes.enable("Dummy")
     rospy.loginfo("ROBO: Started")
 
   def __init__(self):

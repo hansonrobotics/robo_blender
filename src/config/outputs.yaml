@@ -1,8 +1,8 @@
 #--Original head rig outputs--
 - name: neck_euler
   class: state.ParametersOut
-  enabled: false
-  pubtopic: point_head
+  enabled: true
+  pubtopic: dmitry/point_head
   msg: basic_head_api.msg.PointHead
   binding: #bonerot format: armature_obj:bone:axis
     - varpath: yaw
@@ -19,12 +19,12 @@
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_coeffs
-      shkey_mesh: Head
+      shkey_mesh: Neutral.001
 
 - name: eyes
   class: state.ParametersOut
-  enabled: false
-  pubtopic: cmd_eyes_pau
+  enabled: true
+  pubtopic: dmitry/cmd_eyes_pau
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_eyeGazeLeftPitch
