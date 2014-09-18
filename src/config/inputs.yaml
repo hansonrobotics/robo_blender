@@ -24,10 +24,22 @@
 
 - name: pivision
   class: RegionOfInterest
-  enabled: true
+  enabled: false
   sourcetopic: roi
   binding:
     objectpos:
       name: pivision
       offset: [0.008,-1,0.458737]
       scale: 1.5
+
+- name: eyeface
+  class: RegionOfInterest
+  enabled: true
+  sourcetopic: roi
+  binding:
+    objectpos:
+      name: pivision
+      offset: RightEye
+      direction: eyefocus
+      distance: 1
+      scale: 1

@@ -1,4 +1,5 @@
 import bpy
+import rospy
 from . import InputBase
 from mathutils import Vector
 
@@ -13,7 +14,20 @@ class ObjectInBlender(InputBase):
 
   def _set_object_location(self, point):
     if self.confentry["enabled"]:
-      self._location = Vector(self.binding["offset"]) + point * self.binding["scale"]
+      offset = None
+      if isinstance(self.binding["offset"], list):
+        offset = Vector(self.binding["offset"])
+      else:
+        offset = bpy.data.objects[self.binding["offset"]].matrix_world.to_translation()
+        # Check if vector and distance is set
+        if 'direction' in self.binding:
+          distance = 1
+          if 'distance' in self.binding:
+            distance = self.binding['distance']
+          d = bpy.data.objects[self.binding["direction"]].location-offset
+          d.normalize()
+          offset = offset + d * distance
+      self._location = offset + point * self.binding["scale"]
       bpy.data.objects[self.binding["name"]].location = self._location
 
   def _confirm_object(self):
@@ -36,5 +50,4 @@ class ObjectInBlender(InputBase):
     self.confentry = confentry
     self.binding = confentry["binding"]["objectpos"]
     self._location = Vector()
-
     self._update_from_object()

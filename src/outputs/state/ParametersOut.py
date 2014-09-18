@@ -9,7 +9,10 @@ class BlenderGetterFactory:
   @staticmethod
   def bonerot(bindentry):
     args = bindentry["bonerot"].split(":")
-    return lambda: BlenderUtils.get_bones_rotation_rad(*args)
+    scale = 1
+    if ("scale" in bindentry):
+        scale = bindentry["scale"]
+    return lambda: BlenderUtils.get_bones_rotation_rad(*args)*scale
 
   @staticmethod
   def shkey_mesh(bindentry):
@@ -83,7 +86,10 @@ class ParametersOut(StateOutputBase):
 
   def transmit(self):
     msg = self.build_msg()
-    self.pub.publish(msg)
+    try:
+        self.pub.publish(msg)
+    except:
+        pass
 
   def build_msg(self):
     msg = self.msgtype()

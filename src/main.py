@@ -10,6 +10,7 @@ from std_msgs.msg import String
 from bpy.app.handlers import persistent
 import modes, inputs, outputs
 
+# TODO: Cannot use set keys as they can be saved to blender file
 class PersistentParams:
 
   dictname = "robo_blender"

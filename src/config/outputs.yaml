@@ -15,7 +15,7 @@
 - name: face
   class: state.ParametersOut
   enabled: true
-  pubtopic: cmd_face_pau
+  pubtopic: dmitry/cmd_face_pau
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_coeffs
@@ -57,7 +57,7 @@
 - name: eyes_beorn
   class: state.ParametersOut
   enabled: true
-  pubtopic: cmd_eyes_pau
+  pubtopic: /dmitry/cmd_eyes_pau
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_eyeGazeLeftPitch
@@ -72,15 +72,18 @@
 - name: neck_euler_beorn
   class: state.ParametersOut
   enabled: true
-  pubtopic: point_head
+  pubtopic: /dmitry/point_head
   msg: basic_head_api.msg.PointHead
   binding: #bonerot format: armature_obj:bone:axis[:parent_bone]
     - varpath: yaw
       bonerot: Armature:neck_base:y
+      scale: 2
     - varpath: pitch
       bonerot: Armature:bracket3.001:x:neck_base #Sums up both pitch motors
+      scale: 2
     - varpath: roll
       bonerot: Armature:bracket3.001:z:neck_base
+      scale: -1.5
 
 #--Motor-Coupled outputs
 - name: bone_array
