@@ -55,6 +55,7 @@ class Animations:
             self.animationsList = self.anim.getAnimationList()
             self.animationsPub.publish(list(self.animationsList.keys()))
             self.init = True
+            self.anim.resetAnimation()
 
         # Parse any pending commands if exists
         if self.command:
