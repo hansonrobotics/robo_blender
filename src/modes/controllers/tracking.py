@@ -19,7 +19,35 @@ class EmaPoint:
     self.N = float(N)
     self.point = init_point
 
+class RandomTimer:
+
+  def step(self, dt):
+    """ Returns true every time it passes the randomly generated time interval. """
+    self.time_idle += dt
+    if self.time_idle > self.interval:
+      print(self.time_idle)
+      self.clear_time()
+      return True
+    return False
+
+  def clear_time(self):
+    self.time_idle = 0.0
+    self.interval = random.gauss(*self.mu_sig)
+
+  def __init__(self, mu_sig, initial_trigger=False):
+    """
+    Arguments:
+    * mu_sig: tuple (Average time in which to generate new location, standard deviation of that time)
+    * initial_trigger: boolean - whether or not to return True in the first call of step()
+    """
+    self.mu_sig = mu_sig
+    self.clear_time()
+    if initial_trigger:
+      self.time_idle = self.interval + 1.0
+
 class SaccadePipe:
+
+  offset = Vector((0, 0, 0))
 
   @staticmethod
   def random_vector(radius):
@@ -28,21 +56,13 @@ class SaccadePipe:
     ).normalized()*random.uniform(0, radius)
 
   def pipe(self, eyetarget_pos, dt):
-    self.time_idle += dt
-    if self.time_idle > self.interval:
-      self.clear_time()
+    if self.timer.step(dt):
+      self.offset = self.random_vector(self.radius)
     return eyetarget_pos + self.offset
-
-  def clear_time(self):
-    self.time_idle = 0.0
-    self.interval = random.gauss(*self.interval_mu_sig)
-    self.offset = self.random_vector(self.radius)
 
   def __init__(self, radius=0.3, interval_mu_sig=(1.5, 0.8)):
     self.radius = radius
-    self.interval_mu_sig = interval_mu_sig
-    self.clear_time()
-
+    self.timer = RandomTimer(interval_mu_sig, True)
 
 class TrackSaccadeCtrl:
   """
@@ -74,7 +94,7 @@ class TrackSaccadeCtrl:
     ) < self.saccade.radius*0.5:
       eyes_target.location = self.saccade.pipe(eyes_target.location, dt)
     else:
-      self.saccade.clear_time()
+      self.saccade.timer.clear_time()
 
   def __init__(self, interest_obj, **kwargs):
     """

@@ -51,8 +51,8 @@
   enabled: true
   outputs:
     - face
-    - eyes_beorn
-    - neck_euler_beorn
+    - eyes
+    - neck_euler
 
 - name: eyes_beorn
   class: state.ParametersOut
