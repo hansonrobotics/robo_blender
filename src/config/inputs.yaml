@@ -24,7 +24,7 @@
 
 - name: pivision
   class: RegionOfInterest
-  enabled: false
+  enabled: true
   sourcetopic: roi
   binding:
     objectpos:
@@ -34,7 +34,7 @@
 
 - name: eyeface
   class: RegionOfInterest
-  enabled: true
+  enabled: false
   sourcetopic: roi
   binding:
     objectpos:

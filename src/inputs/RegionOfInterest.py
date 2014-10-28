@@ -21,13 +21,25 @@ class RegionOfInterest(ObjectInBlender):
   def handle_source(self, msg):
     point = self.roi2point(msg)
     self.set_object_location(point)
+
+  def change_topic(self,topic):
+      if self.topic_name != topic:
+          self.topic.unregister()
+          self.topic = rospy.Subscriber(
+            topic,
+            sensor_msgs.msg.RegionOfInterest,
+            self._pend_msg(self.handle_source)
+          )
+          self.topic_name = topic
+
   
   def __init__(self, confentry):
-    rospy.Subscriber(
+    self.topic = rospy.Subscriber(
     	confentry["sourcetopic"],
     	sensor_msgs.msg.RegionOfInterest,
     	self._pend_msg(self.handle_source)
     )
+    self.topic_name = confentry["sourcetopic"]
 
     def handle_camerainfo(msg):
       self.camerainfo = msg
@@ -37,5 +49,6 @@ class RegionOfInterest(ObjectInBlender):
       sensor_msgs.msg.CameraInfo,
       handle_camerainfo
     )
+
 
     super(RegionOfInterest, self).__init__(confentry)
