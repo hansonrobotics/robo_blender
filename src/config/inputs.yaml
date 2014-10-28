@@ -32,6 +32,16 @@
       offset: [0.008,-1,0.458737]
       scale: 1.5
 
+- name: glancetarget
+  class: RegionOfInterest
+  enabled: true
+  sourcetopic: roi
+  binding:
+    objectpos:
+      name: glancetarget
+      offset: [0.008,-1.0,458737]
+      scale: 1.5
+
 - name: eyeface
   class: RegionOfInterest
   enabled: false
