@@ -1,10 +1,8 @@
 from . import primary
-from docutils.nodes import target
 from mathutils import Vector
 import random
 import rospy
-from eva_behavior.msg import event
-from eva_behavior.msg import tracking_action
+
 class EmaPoint:
   """Exponential moving average point"""
 
@@ -28,7 +26,6 @@ class RandomTimer:
     """ Returns true every time it passes the randomly generated time interval. """
     self.time_idle += dt
     if self.time_idle > self.interval:
-      print(self.time_idle)
       self.clear_time()
       return True
     return False
@@ -124,10 +121,4 @@ class TrackSaccadeCtrl:
       **{k:v for k,v in kwargs.items()
       if k in ["radius", "interval_mu_sig"]}
     )
-
-    self.action_topic = rospy.Subscriber('tracking_action', tracking_action, self.action_cb)
-
-  def action_cb(self, action):
-      if (action.action  == 'track'):
-          self.interest_obj.change_topic(action.target)
 
