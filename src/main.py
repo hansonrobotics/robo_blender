@@ -53,13 +53,13 @@ class RoboBlender:
     blparams.set("running", True)
 
     rospy.init_node('robo_blender', anonymous=True)
-    rospy.Subscriber('cmd_blendermode', String, self.handle_blendermode)
     inputs.initialize(
       Utils.read_yaml(os.path.join(self.config_dir, "inputs.yaml"))
     )
     outputs.initialize(
       Utils.read_yaml(os.path.join(self.config_dir, "outputs.yaml"))
     )
+    rospy.Subscriber('cmd_blendermode', String, self.handle_blendermode)
     
     @persistent
     def handle_scene_update(dummy):
