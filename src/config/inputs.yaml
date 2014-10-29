@@ -39,7 +39,7 @@
   binding:
     objectpos:
       name: glancetarget
-      offset: [0.008,-1.0,458737]
+      offset: [0.008,-1,0.458737]
       scale: 1.5
 
 - name: eyeface

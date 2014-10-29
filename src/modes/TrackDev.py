@@ -26,7 +26,6 @@ class TrackDev:
 
   def action_cb(self, action):
     if action.action  == 'track':
-      print(action.target)
       self.primary.change_topic(action.target)
     elif action.action == 'glance':
       self.secondary.change_topic(action.target)

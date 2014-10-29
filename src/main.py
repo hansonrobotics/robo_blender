@@ -32,6 +32,7 @@ class PersistentParams:
 class RoboBlender:
 
   config_dir = "config"
+  step_in_process = False
 
   def handle_blendermode(self, msg):
     msg = msg.data
@@ -71,11 +72,17 @@ class RoboBlender:
 
       # Limit execution to intervals of self.frame_interval
       t = time.time()
-      if t - self.lastframe < self.frame_interval:
+      if t - self.lastframe < self.frame_interval or self.step_in_process:
         return
       self.lastframe = self.lastframe + self.frame_interval
       # Limited execution starts here.
+      self.step_in_process = True
       self.step(self.frame_interval)
+      self.step_in_process = False
+      # The boolean wrapper above prevents infinite recursion in case step()
+      # invokes blender to call handle_scene_update again
+
+
 
     self.lastframe = time.time()
     bpy.app.handlers.scene_update_pre.append(handle_scene_update)

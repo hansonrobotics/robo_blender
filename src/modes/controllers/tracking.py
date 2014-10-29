@@ -76,7 +76,7 @@ class GlancePipe:
 
   def head(self, primary_loc):
     # Towards a middle point between the primary and glance targets
-    return self.weighted_avg(primary_loc, self.target_obj.location, 0.3)
+    return self.weighted_avg(primary_loc, self.target_obj.location, 0.5)
 
   def step(self, dt):
     return self.timer.step(dt)
