@@ -3,6 +3,7 @@ import importlib
 import inspect
 import rospy
 import Utils
+import traceback
 
 __doc__ = """
 --Description--
@@ -36,11 +37,12 @@ def enable(mode_name):
     mode = Utils.import_member(member_name)
     rospy.loginfo("Activating mode %s" % mode_name)
   except ImportError as e:
+    traceback.print_exc()
     rospy.logwarn("Couldn't load module %s" % module_name)
-    print(e)
     return
-  except AttributeError:
-    rospy.logwarn("Couldn't find class %s" % member_name)
+  except AttributeError as e:
+    traceback.print_exc()
+    rospy.logwarn("Couldn't load class %s" % member_name)
     return
 
   # Taking this out of the try-except block to not catch AttributeErrors

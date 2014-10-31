@@ -1,10 +1,8 @@
 from . import primary
-from docutils.nodes import target
 from mathutils import Vector
 import random
 import rospy
-from eva_behavior.msg import event
-from eva_behavior.msg import tracking_action
+
 class EmaPoint:
   """Exponential moving average point"""
 
@@ -28,7 +26,6 @@ class RandomTimer:
     """ Returns true every time it passes the randomly generated time interval. """
     self.time_idle += dt
     if self.time_idle > self.interval:
-      print(self.time_idle)
       self.clear_time()
       return True
     return False
@@ -63,9 +60,30 @@ class SaccadePipe:
       self.offset = self.random_vector(self.radius)
     return eyetarget_pos + self.offset
 
-  def __init__(self, radius=0.3, interval_mu_sig=(1.5, 0.8)):
+  def __init__(self, radius=0.2, interval_mu_sig=(1.5, 0.8)):
     self.radius = radius
     self.timer = RandomTimer(interval_mu_sig, True)
+
+class GlancePipe:
+
+  @staticmethod
+  def weighted_avg(home, dest, weight):
+    return dest * weight + home * (1 - weight)
+
+  def eyes(self, primary_loc):
+    # Towards the glance target
+    return self.target_obj.location
+
+  def head(self, primary_loc):
+    # Towards a middle point between the primary and glance targets
+    return self.weighted_avg(primary_loc, self.target_obj.location, 0.5)
+
+  def step(self, dt):
+    return self.timer.step(dt)
+
+  def __init__(self, target_obj, timer):
+    self.target_obj = target_obj
+    self.timer = timer
 
 class TrackSaccadeCtrl:
   """
@@ -85,11 +103,17 @@ class TrackSaccadeCtrl:
     eyes_target = primary.get_eyes_target()
 
     # Update EMAs
-    for ema, target in [
-      (self.head_ema, head_target),
-      (self.eyes_ema, eyes_target)
-    ]:
-      target.location = ema.update(self.interest_obj.location, dt)
+    if self.glance_pipe:
+      # Towards the glance-piped target
+      eyes_target.location = self.eyes_ema.update(self.glance_pipe.eyes(self.interest_obj.location), dt)
+      head_target.location = self.head_ema.update(self.glance_pipe.head(self.interest_obj.location), dt)
+
+      if self.glance_pipe.step(dt):
+        self.glance_pipe = None
+    else:
+      # Towards the primary target
+      eyes_target.location = self.eyes_ema.update(self.interest_obj.location, dt)
+      head_target.location = self.head_ema.update(self.interest_obj.location, dt)
 
     # Saccade if eyes caught up with the interest_obj
     if self.distance(
@@ -98,6 +122,9 @@ class TrackSaccadeCtrl:
       eyes_target.location = self.saccade.pipe(eyes_target.location, dt)
     else:
       self.saccade.timer.clear_time()
+
+  def glance(self, target_obj, mu_sig=(1.25, 0.4)):
+    self.glance_pipe = GlancePipe(target_obj, RandomTimer(mu_sig))
 
   def __init__(self, interest_obj, **kwargs):
     """
@@ -124,10 +151,5 @@ class TrackSaccadeCtrl:
       **{k:v for k,v in kwargs.items()
       if k in ["radius", "interval_mu_sig"]}
     )
-
-    self.action_topic = rospy.Subscriber('tracking_action', tracking_action, self.action_cb)
-
-  def action_cb(self, action):
-      if (action.action  == 'track'):
-          self.interest_obj.change_topic(action.target)
+    self.glance_pipe = None
 
