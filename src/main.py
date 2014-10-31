@@ -33,9 +33,15 @@ class RoboBlender:
 
   config_dir = "config"
   step_in_process = False
+  modes = []
+
 
   def handle_blendermode(self, msg):
+    #disable if mode not allowed
     msg = msg.data
+    if not msg in self.modes:
+        msg = 'Dummy'
+
     if msg == "disable":
       modes.disable()
     else:
@@ -94,6 +100,10 @@ class RoboBlender:
   def __init__(self):
     self.config = Utils.read_yaml(os.path.join(self.config_dir, "config.yaml"))
     self.frame_interval = 1.0/self.config["fps"]
+    if 'targets' in bpy.data.objects:
+      self.modes = ['TrackDev', 'LookAround']
+    else:
+      self.modes = ['Animations']
 
 print("ROBO: Loading")
 robo = RoboBlender()
