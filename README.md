@@ -15,9 +15,12 @@ Currently two rigs are supported:
   * Neck rig (included).
   * Animations Rig by Beorn
 
-Listens for /cmd_blender to switch between the different blender nodes.
+The last working version of the Einstein rig is in the branch named
+"einstein-dev".
 
 ## Modes
+
+Listens for /cmd_blender to switch between the different blender nodes.
 The currently supported modes are:
 
 ### Animations
