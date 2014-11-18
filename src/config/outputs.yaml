@@ -1,0 +1,103 @@
+#--Original head rig outputs--
+- name: neck_euler
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: dmitry/point_head
+  msg: basic_head_api.msg.PointHead
+  binding: #bonerot format: armature_obj:bone:axis
+    - varpath: yaw
+      bonerot: Armature:base:y
+    - varpath: pitch
+      bonerot: Armature:bracket3:x
+    - varpath: roll
+      bonerot: Armature:bracket2:z
+
+- name: face
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: dmitry/cmd_face_pau
+  msg: pau2motors.msg.pau
+  binding:
+    - varpath: m_coeffs
+      shkey_mesh: Neutral.001
+
+- name: eyes
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: dmitry/cmd_eyes_pau
+  msg: pau2motors.msg.pau
+  binding:
+    - varpath: m_eyeGazeLeftPitch
+      bonerot: leye:leyebone:x
+    - varpath: m_eyeGazeLeftYaw
+      bonerot: leye:leyebone:z
+    - varpath: m_eyeGazeRightPitch
+      bonerot: reye:reyebone:x
+    - varpath: m_eyeGazeRightYaw
+      bonerot: reye:reyebone:z
+
+
+#- name: full_head
+#  class: state.CompositeOut
+#  enabled: true
+#  outputs:
+#    - neck_euler
+#    - face
+#    - eyes
+
+#--Beorn rig outputs--
+- name: full_head
+  class: state.CompositeOut
+  enabled: true
+  outputs:
+    - face
+    - eyes_beorn
+    - neck_euler_beorn
+
+- name: eyes_beorn
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: /dmitry/cmd_eyes_pau
+  msg: pau2motors.msg.pau
+  binding:
+    - varpath: m_eyeGazeLeftPitch
+      bonerot: Armature:leyebone:x
+    - varpath: m_eyeGazeLeftYaw
+      bonerot: Armature:leyebone:z
+    - varpath: m_eyeGazeRightPitch
+      bonerot: Armature:reyebone:x
+    - varpath: m_eyeGazeRightYaw
+      bonerot: Armature:reyebone:z
+
+- name: neck_euler_beorn
+  class: state.ParametersOut
+  enabled: true
+  pubtopic: /dmitry/point_head
+  msg: basic_head_api.msg.PointHead
+  binding: #bonerot format: armature_obj:bone:axis[:parent_bone]
+    - varpath: yaw
+      bonerot: Armature:neck_base:y
+      scale: 2
+    - varpath: pitch
+      bonerot: Armature:bracket3.001:x:neck_base #Sums up both pitch motors
+      scale: 2
+    - varpath: roll
+      bonerot: Armature:bracket3.001:z:neck_base
+      scale: -1.5
+
+#--Motor-Coupled outputs
+- name: bone_array
+  class: state.ParametersOut
+  enabled: false
+  pubtopic: cmd_joints
+  msg: trajectory_msgs.msg.JointTrajectory
+  binding:
+    - varpath: joint_names
+      childbones_name: Armature
+    - varpath: points:0:positions
+      childbones_rot: Armature:z
+
+#--Zeno-Specific outputs--
+- name: animation
+  class: TimelineAnimation
+  enabled: false

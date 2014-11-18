@@ -1,0 +1,55 @@
+- name: faceshift
+  class: Faceshift
+  enabled: false
+  sourcetopic: faceshift_track
+  binding:
+    meshname: Head
+    singles: []
+      #- varpath: m_headRotation:x
+      #  bonerot: Armature:bracket3:x
+      #- varpath: m_headRotation:y
+      #  bonerot: Armature:base:y
+      #- varpath: m_headRotation:z
+      #  bonerot: Armature:bracket2:z
+
+- name: nmpt_saliency
+  class: RegionOfInterest
+  enabled: true
+  sourcetopic: nmpt_roi
+  binding:
+    objectpos:
+      name: saliency #The name of the object in Blender
+      offset: [0.008,-1,0.458737]
+      scale: 1.5
+
+- name: pivision
+  class: RegionOfInterest
+  enabled: true
+  sourcetopic: roi
+  binding:
+    objectpos:
+      name: pivision
+      offset: [0.008,-1,0.458737]
+      scale: 1.5
+
+- name: glancetarget
+  class: RegionOfInterest
+  enabled: true
+  sourcetopic: roi
+  binding:
+    objectpos:
+      name: glancetarget
+      offset: [0.008,-1,0.458737]
+      scale: 1.5
+
+- name: eyeface
+  class: RegionOfInterest
+  enabled: false
+  sourcetopic: roi
+  binding:
+    objectpos:
+      name: pivision
+      offset: RightEye
+      direction: eyefocus
+      distance: 1
+      scale: 1
