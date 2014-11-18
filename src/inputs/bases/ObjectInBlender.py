@@ -110,8 +110,26 @@ class ObjectInBlender(InputBase):
     new_cube = bpy.context.selected_objects[0]
     new_cube.parent = bpy.data.objects[cls.GROUP_NAME]
     new_cube.name = name
+    cls._hash_color(new_cube)
     #Restore selection
     selection.restore()
+
+  @staticmethod
+  def _hash_color(obj):
+    """ Color object by its first two letters from its name. """
+    name_hash = hash(obj.name[:2])
+    color = (
+      (name_hash >> 16) % 256,
+      (name_hash >> 8) % 256,
+      name_hash % 256
+    )
+    mat_name = "#%02X%02X%02X" % color
+    mat = (
+      bpy.data.materials[mat_name] if mat_name in bpy.data.materials
+      else bpy.data.materials.new(mat_name)
+    )
+    mat.diffuse_color = tuple([i / 256 for i in color])
+    obj.data.materials.append(mat)
 
   def _update_from_object(self):
     pass
