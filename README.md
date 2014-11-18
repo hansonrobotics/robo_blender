@@ -21,7 +21,7 @@ Listens for /cmd_blender to switch between the different blender nodes.
 The currently supported modes are:
 
 ### Animations
-Plays predefined animations.
+Plays predefined animations from rig which are defined as object actions.
 
 ##### Topics subscribed:
   * cmd_animations(std_msgs/String) - colon separated string which
@@ -31,7 +31,7 @@ Plays predefined animations.
   * full_head - publishes expression neck and eyes information.
 
 ### LookAround
-Move the head and eyes. Enabled once robot seeks attention.(?)
+Move the head and eyes. Enabled once robot seeks attention. Movements are done semi randomly with eyes moving faster than head.
 
 ##### Inputs:
   * (none)
