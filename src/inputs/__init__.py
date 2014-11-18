@@ -1,6 +1,4 @@
-import sys
-import Utils
-import inspect
+import sys, Utils, inspect, traceback, rospy
 
 __doc__ = """
 inputs.py is a module that holds classes and their instances that are
@@ -69,7 +67,7 @@ class InstanceStore:
       else:
         raise
     except AttributeError:
-      raise NameError("Couldn't find class %s" % member_name)
+      raise NameError("Couldn't load class %s" % member_name)
 
   @classmethod
   def _build_single(cls, confentry):
@@ -86,11 +84,15 @@ class InstanceStore:
     # Build and store outputs out of the config
     self._instances = {}
     for confentry in fullconfig:
-      if confentry["name"][0] == "_":
-        raise NameError("Input name %s can't start with _" % confentry["name"])
-      if confentry["name"] in self.orig_members:
-        raise NameError("Input name %s is reserved" % confentry["name"])
-      self._store_instance(confentry["name"], self._build_single(confentry))
+      try:
+        if confentry["name"][0] == "_":
+          raise NameError("Input name %s can't start with _" % confentry["name"])
+        if confentry["name"] in self.orig_members:
+          raise NameError("Input name %s is reserved" % confentry["name"])
+        self._store_instance(confentry["name"], self._build_single(confentry))
+      except:
+        traceback.print_exc()
+        rospy.logwarn("Couldn't load input %s" % confentry["name"])
 
 def initialize(fullconfig):
   global store
