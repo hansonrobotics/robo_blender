@@ -54,13 +54,28 @@
       distance: 1
       scale: 1
 
-- name: whole_pivision
+- name: chest_pivision
   class: NRegionsOfInterest
   enabled: true
   rosbind:
+    namespace: chest
     eventtopic: tracking_event
     sourcetopic: faces/%d
   blenderbind:
     objectpos:
       offset: [0.008,-1,0.458737]
       scale: 1.5
+
+- name: eye_pivision
+  class: NRegionsOfInterest
+  enabled: true
+  rosbind:
+    namespace: eye
+    eventtopic: tracking_event
+    sourcetopic: faces/%d
+  blenderbind:
+    objectpos:
+      offset: RightEye
+      direction: eyefocus
+      distance: 1
+      scale: 1

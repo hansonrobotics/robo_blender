@@ -4,6 +4,7 @@ from .bases.ObjectInBlender import ObjectInBlender
 import sensor_msgs.msg, eva_behavior.msg
 from mathutils import Vector
 import copy
+import posixpath
 
 class Face:
 
@@ -11,7 +12,10 @@ class Face:
     face_id = int(face_id)
 
     #Generate name in binding config
-    source_topic = confentry["rosbind"]["sourcetopic"] % face_id
+    source_topic = posixpath.join(
+      confentry["rosbind"]["namespace"],
+      confentry["rosbind"]["sourcetopic"] % face_id
+    )
     blenderbind = copy.deepcopy(confentry["blenderbind"])
     blenderbind["objectpos"]["name"] = source_topic
 
@@ -55,9 +59,16 @@ class NRegionsOfInterest(InputBase):
   the 'eventtopic' (specified in config).
   """
   def __init__(self, confentry):
+    #Make sure namespace parameter is there, even if it's empty
+    if not "namespace" in confentry["rosbind"]:
+      confentry["rosbind"]["namespace"] = ""
+
     self.confentry = confentry
     self.topic = rospy.Subscriber(
-      confentry["rosbind"]["eventtopic"],
+      posixpath.join(
+        confentry["rosbind"]["namespace"],
+        confentry["rosbind"]["eventtopic"]
+      ),
       eva_behavior.msg.event,
       self._pend_msg(self._handle_event)
     )
@@ -69,7 +80,7 @@ class NRegionsOfInterest(InputBase):
       self.camerainfo = msg
       ci_sub.unregister()
     ci_sub = rospy.Subscriber(
-      'camera/camera_info',
+      posixpath.join(confentry["rosbind"]["namespace"], "camera/camera_info"),
       sensor_msgs.msg.CameraInfo,
       handle_camerainfo
     )
