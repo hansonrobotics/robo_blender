@@ -1,7 +1,32 @@
 from . import primary
 from mathutils import Vector
 import random
-import rospy
+import bpy
+
+class ExpectObject:
+  """
+  Object requested to track can take a few iterations to appear and later be
+  destroyed. This wrapper fallbacks gracefully to another object in those
+  cases.
+  """
+  @property
+  def location(self):
+    obj = self.get()
+    if obj:
+      return obj.location
+    elif self.fallback_obj:
+      return self.fallback_obj.location
+
+  def get(self):
+    """ The slash prefix is optional. """
+    if self.obj_name in bpy.data.objects:
+      return bpy.data.objects[self.obj_name]
+    elif '/'+self.obj_name in bpy.data.objects:
+      return bpy.data.objects['/'+self.obj_name]
+
+  def __init__(self, obj_name, fallback_obj=None):
+    self.obj_name = obj_name.lstrip('/')
+    self.fallback_obj = fallback_obj
 
 class EmaPoint:
   """Exponential moving average point"""
@@ -70,6 +95,9 @@ class GlancePipe:
   def weighted_avg(home, dest, weight):
     return dest * weight + home * (1 - weight)
 
+  def is_ready(self):
+    return self.target_obj.get() != None
+
   def eyes(self, primary_loc):
     # Towards the glance target
     return self.target_obj.location
@@ -93,17 +121,20 @@ class TrackSaccadeCtrl:
   Eyes will saccade if the object is moving slow enough for the eyes to catch
   up with it.
   """
-  
+
   @staticmethod
   def distance(v1, v2):
     return (v1 - v2).magnitude
 
   def step(self, dt):
+    if self.interest_obj == None:
+      return
+
     head_target = primary.get_head_target()
     eyes_target = primary.get_eyes_target()
 
     # Update EMAs
-    if self.glance_pipe:
+    if self.glance_pipe and self.glance_pipe.is_ready():
       # Towards the glance-piped target
       eyes_target.location = self.eyes_ema.update(self.glance_pipe.eyes(self.interest_obj.location), dt)
       head_target.location = self.head_ema.update(self.glance_pipe.head(self.interest_obj.location), dt)
@@ -123,10 +154,16 @@ class TrackSaccadeCtrl:
     else:
       self.saccade.timer.clear_time()
 
-  def glance(self, target_obj, mu_sig=(1.25, 0.4)):
-    self.glance_pipe = GlancePipe(target_obj, RandomTimer(mu_sig))
+  def track(self, target_name):
+    self.interest_obj = ExpectObject(target_name, primary.get_head_target())
 
-  def __init__(self, interest_obj, **kwargs):
+  def glance(self, target_name, mu_sig=(1.25, 0.4)):
+    self.glance_pipe = GlancePipe(
+      ExpectObject(target_name, primary.get_head_target()),
+      RandomTimer(mu_sig)
+    )
+
+  def __init__(self, interest_obj=None, **kwargs):
     """
     Argument 'interest_obj' must have attribute "location".
 
@@ -152,4 +189,3 @@ class TrackSaccadeCtrl:
       if k in ["radius", "interval_mu_sig"]}
     )
     self.glance_pipe = None
-

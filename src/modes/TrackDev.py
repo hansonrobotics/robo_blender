@@ -1,13 +1,9 @@
 from .controllers import tracking
-import bpy
-import inputs, outputs
+import outputs
 import rospy
 from eva_behavior.msg import tracking_action
 
 class TrackDev:
-
-  primary = inputs.store.pivision
-  secondary = inputs.store.glancetarget
 
   def step(self, dt):
     self.ctrl.step(dt)
@@ -15,7 +11,7 @@ class TrackDev:
     outputs.store.eyes.transmit()
 
   def __init__(self):
-    self.ctrl = tracking.TrackSaccadeCtrl(self.primary)
+    self.ctrl = tracking.TrackSaccadeCtrl()
 
     # Allow only a single subscriber in the class-wide parameter action_topic
     cls = type(self)
@@ -26,7 +22,6 @@ class TrackDev:
 
   def action_cb(self, action):
     if action.action  == 'track':
-      self.primary.change_topic(action.target)
+      self.ctrl.track(action.target)
     elif action.action == 'glance':
-      self.secondary.change_topic(action.target)
-      self.ctrl.glance(self.secondary)
+      self.ctrl.glance(action.target)

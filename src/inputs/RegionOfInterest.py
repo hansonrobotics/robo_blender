@@ -1,5 +1,4 @@
 import rospy
-from . import bases
 from .bases.ObjectInBlender import ObjectInBlender
 import sensor_msgs.msg
 from mathutils import Vector
@@ -32,7 +31,7 @@ class RegionOfInterest(ObjectInBlender):
           )
           self.topic_name = topic
 
-  
+
   def __init__(self, confentry):
     self.topic = rospy.Subscriber(
     	confentry["sourcetopic"],

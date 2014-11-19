@@ -12,53 +12,11 @@
       #- varpath: m_headRotation:z
       #  bonerot: Armature:bracket2:z
 
-- name: nmpt_saliency
-  class: RegionOfInterest
-  enabled: false
-  sourcetopic: nmpt_roi
-  binding:
-    objectpos:
-      name: saliency #The name of the object in Blender
-      offset: [0.008,-1,0.458737]
-      scale: 1.5
-
-- name: pivision
-  class: RegionOfInterest
-  enabled: false
-  sourcetopic: roi
-  binding:
-    objectpos:
-      name: pivision
-      offset: [0.008,-1,0.458737]
-      scale: 1.5
-
-- name: glancetarget
-  class: RegionOfInterest
-  enabled: false
-  sourcetopic: roi
-  binding:
-    objectpos:
-      name: glancetarget
-      offset: [0.008,-1,0.458737]
-      scale: 1.5
-
-- name: eyeface
-  class: RegionOfInterest
-  enabled: false
-  sourcetopic: eyeroi
-  binding:
-    objectpos:
-      name: pivision
-      offset: RightEye
-      direction: eyefocus
-      distance: 1
-      scale: 1
-
 - name: chest_pivision
   class: NRegionsOfInterest
   enabled: true
   rosbind:
-    namespace: chest
+    #namespace: chest
     eventtopic: tracking_event
     sourcetopic: faces/%d
   blenderbind:
