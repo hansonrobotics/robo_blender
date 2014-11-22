@@ -25,6 +25,16 @@ The following packages need to be installed:
 Caution: python3+ros has issues; see this bug: 
 https://github.com/ros-infrastructure/rospkg/issues/71
 
+This can be worked-around as follows:
+
+    git clone git://github.com/ros/rospkg.git
+    cd rospkg
+    python3 setup.py install
+    cd ..
+    git clone git://github.com/ros-infrastructure/catkin_pkg.git
+    cd catkin_pkg
+    python3 setup.py install
+
 
 ## Running
 To run, start blender, and load the robo.blend head.  Verify that the
