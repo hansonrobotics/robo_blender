@@ -17,6 +17,20 @@ Currently only one rig is supported:
 The last working version of the Einstein rig is in the branch named
 "einstein-dev".
 
+## Pre-requisites
+The following packages need to be installed:
+
+    apt-get install python3-yaml python3-rospkg
+
+Caution: python3+ros has issues; see this bug: 
+https://github.com/ros-infrastructure/rospkg/issues/71
+
+
+## Running
+To run, start blender, and load the robo.blend head.  Verify that the
+ros node has started:  'rostopic list' should show /cmd_blendermode
+among other nodes.
+
 ## Modes
 
 Listens for /cmd_blender to switch between the different blender nodes.
@@ -30,7 +44,10 @@ No error is thrown if an invalid animation name is specified.
 
 ##### Topics subscribed:
   * cmd_animations(std_msgs/String) - colon separated string which
-    sends command (play,stop, pause) and optionaly the animation name.
+    sends command (play,stop, pause) follwed optionaly the animation name.
+
+    For example:
+    rostopic pub /cmd_blendermode std_msgs/String play:blah
 
 ##### Outputs:
   * full_head - publishes expression neck and eyes information.
@@ -39,6 +56,9 @@ No error is thrown if an invalid animation name is specified.
 Move the head and eyes. Enabled once robot seeks attention. Movements
 are defined via a python script in the rig.  The movements are randomly
 generated, with eyes moving faster than head.
+
+For example:
+   rostopic pub /cmd_blendermode std_msgs/String LookAround
 
 ##### Inputs:
   * (none)
@@ -54,6 +74,7 @@ to control and move the rig, thus controlling the physical robot head.
 ##### Outputs:
   * full_head  - publishes expressions for neck and eyes positions.
 
+
 ### TrackDev
 Current head tracking topic. Has primary and secondary target that
 can be changed during runtime.
@@ -62,6 +83,7 @@ can be changed during runtime.
   * /tracking_action (eva_behavior/tracking_action) - Listens for
     information on objects to track.
 
+
 #### Inputs
   * pi_vision (RegionOfInterest) - topic publishing ROI  for tracking
   * glancetarget (RegionOfInterest) - topic publishing ROI for glancing
@@ -69,6 +91,7 @@ can be changed during runtime.
 ##### outputs
   * neck_euler - publishes neck angle
   * eyes - publishes eyes movements
+
 
 ### Dummy
 Idle.
