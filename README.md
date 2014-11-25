@@ -11,8 +11,8 @@ The node is started within Blender, and has direct access to the
 Blender context.  It uses different modes to control the rig, with
 different modes used for different rigs.
 
-Currently only one rig is supported:
-  * Neck rig (included).
+Currently only one rig is included:
+  * robo.blend
 
 The last working version of the Einstein rig is in the branch named
 "einstein-dev".
@@ -45,27 +45,16 @@ among other nodes.
 
 Listens for /cmd_blender to switch between the different blender nodes.
 The currently supported modes are:
-
-### Animations
-Plays animations defined within the rig itself (i.e. defined as object
-actions).  The list of valid animations can be obtained with the
-/animations_list topic.
-No error is thrown if an invalid animation name is specified.
-
-##### Topics subscribed:
-  * cmd_animations(std_msgs/String) - colon separated string which
-    sends command (play,stop, pause) follwed optionaly the animation name.
-
-    For example:
-    rostopic pub /cmd_blendermode std_msgs/String play:blah
-
-##### Outputs:
-  * full_head - publishes expression neck and eyes information.
+ * LookAround  -- random looking about
+ * Manual Head -- manual control from blender, debugging
+ * TrackDev    -- head/eyes track a region of interest
+ * Animations  -- menu of scripted animations
+ * Dummy       --
 
 ### LookAround
-Move the head and eyes. Enabled once robot seeks attention. Movements
-are defined via a python script in the rig.  The movements are randomly
-generated, with eyes moving faster than head.
+Move the head and eyes in an endless cycle. Movements are defined via
+a python script in the rig.  The movements are randomly generated, with
+eyes moving faster than head.
 
 For example:
    rostopic pub /cmd_blendermode std_msgs/String LookAround
@@ -77,6 +66,7 @@ For example:
   * neck_euler - publishes neck angle
   * eyes - publishes eyes movements
 
+
 ### Manual Head
 Used for animation development and debugging. Allows the designer
 to control and move the rig, thus controlling the physical robot head.
@@ -86,8 +76,13 @@ to control and move the rig, thus controlling the physical robot head.
 
 
 ### TrackDev
-Current head tracking topic. Uses at most two targets from the scene
-to track. Picks them as instructed by the /tracking_action topic.
+Eyes and head track targets defined by region of interest (typically
+obtained via camera viedo processing).  Maintains two targets from
+the scene. The target to be tracked is selected with the
+/tracking_action topic.
+
+For example:
+   rostopic pub /cmd_blendermode std_msgs/String TrackDev
 
 ##### Topics subscribed:
   * /tracking_action (eva_behavior/tracking_action) - Listens for
@@ -95,17 +90,45 @@ to track. Picks them as instructed by the /tracking_action topic.
 
 
 #### Inputs
-  * chest_pivision (NRegionsOfInterest) - populates the scene with ROI from chest camera
-  * eye_pivision (NRegionsOfInterest) - populates the scene with ROI from eye camera
+  * chest_pivision (NRegionsOfInterest) - populates the scene with ROI
+    from chest camera
+  * eye_pivision (NRegionsOfInterest) - populates the scene with ROI
+    from eye camera
 
-
-##### outputs
+##### Outputs
   * neck_euler - publishes neck angle
   * eyes - publishes eyes movements
 
 
+### Animations
+Plays pre-defined animations.  These are defined as object actions
+within the blender rig.  The list of valid animations can be obtained
+with the /animations_list topic; this topic list is NOT published until
+the rig is placed in animation mode.
+
+No error is thrown if an invalid animation name is specified.
+
+Animations are currently implemented only the Beorn rig.
+
+For example:
+   rostopic pub /cmd_blendermode std_msgs/String Animations
+
+##### Topics subscribed:
+  * cmd_animations(std_msgs/String) - colon separated string which
+    sends command (play,stop, pause) follwed optionaly the animation name.
+
+    For example:
+    rostopic pub /cmd_blendermode std_msgs/String play:blah
+
+##### Outputs:
+  * full_head - publishes expression neck and eyes information.
+
+
 ### Dummy
 Idle.
+
+For example:
+   rostopic pub /cmd_blendermode std_msgs/String Dummy
 
 ## Inputs
 Mainly one input class is currently used:
@@ -121,7 +144,7 @@ Mainly one input class is currently used:
     of the face mesh.
 
 ## Outputs
-Outputs are used to publish rig data back to ROS.  Ros topics are
+Outputs are used to publish rig data back to ROS.  ROS topics are
 defined in config.
 
 The following outputs are currently used:
