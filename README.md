@@ -22,7 +22,7 @@ The following packages need to be installed:
 
     apt-get install python3-yaml python3-rospkg
 
-Caution: python3+ros has issues; see this bug: 
+Caution: python3+ros has issues; see this bug:
 https://github.com/ros-infrastructure/rospkg/issues/71
 
 This can be worked-around as follows:
@@ -86,8 +86,8 @@ to control and move the rig, thus controlling the physical robot head.
 
 
 ### TrackDev
-Current head tracking topic. Has primary and secondary target that
-can be changed during runtime.
+Current head tracking topic. Uses at most two targets from the scene
+to track. Picks them as instructed by the /tracking_action topic.
 
 ##### Topics subscribed:
   * /tracking_action (eva_behavior/tracking_action) - Listens for
@@ -95,8 +95,9 @@ can be changed during runtime.
 
 
 #### Inputs
-  * pi_vision (RegionOfInterest) - topic publishing ROI  for tracking
-  * glancetarget (RegionOfInterest) - topic publishing ROI for glancing
+  * chest_pivision (NRegionsOfInterest) - populates the scene with ROI from chest camera
+  * eye_pivision (NRegionsOfInterest) - populates the scene with ROI from eye camera
+
 
 ##### outputs
   * neck_euler - publishes neck angle
@@ -108,6 +109,11 @@ Idle.
 
 ## Inputs
 Mainly one input class is currently used:
+  * NRegionsOfInterest - Listens to the specified *eventtopic* for
+    eva_behavior/tracking_event messages, which inform about new and
+    removed sensor_msgs/RegionOfInterest topics of the format specified
+    in *sourcetopic*. Converts them to 3D space in blender and updates
+    their position.
   * RegionOfInterest - Listens to specified topic for
     sensor_msgs/RegionOfInterest message. Converts it to 3D space
     in blender and updates the blender object position in the blender.
@@ -128,4 +134,3 @@ The following outputs are currently used:
   * neck_euler_beorn  - gets Beorn's rig neck rotation in Euler angles
     and publishes in basic_head_api.msg/PointHead
   * full_head - combines face, neck_euler_beorn, eyes_beorn outputs to one.
-
