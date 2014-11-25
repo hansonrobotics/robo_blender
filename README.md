@@ -37,9 +37,16 @@ This can be worked-around as follows:
 
 
 ## Running
-To run, start blender, and load the robo.blend head.  Verify that the
-ros node has started:  'rostopic list' should show /cmd_blendermode
-among other nodes.
+To run, start blender, and load the robo.blend rig file.  The ROS node
+is not started until one of the following is performed:
+
+ * Hover mouse over the text editor and press Alt+P
+ * Select the text-editor menu "Edit->Run Script" item.
+   (the text-editor menu is at bottom-left).
+ * Start blender as `blender robo.blend -P startup.py`
+
+Verify that the ROS node has started:  `rostopic list -v` should show
+`/cmd_blendermode` as a subscribed topic.
 
 ## Modes
 
