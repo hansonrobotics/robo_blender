@@ -48,7 +48,7 @@ class Animations:
         elif command == 'stop':
             self.command = 'stop'
             self.next = None
-            if not self.isPlaying:
+            if not self.current:
                 rospy.logwarn("Stop: no animation playing")
 
         # Pause animation immediatly
