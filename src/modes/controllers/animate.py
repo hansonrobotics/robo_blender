@@ -1,7 +1,7 @@
 import bpy
 
 class Animate:
-
+    """Start and stop one of the animations supported by the rig"""
     def __init__(self, obj):
         #Object for which actions is applied
         self.actionObj = bpy.data.objects[obj]
@@ -18,8 +18,12 @@ class Animate:
     def setAnimation(self,act):
         # Check if correct object selected
         if self.actionObj.animation_data is not None:
-           self.actionObj.animation_data.action = bpy.data.actions[act]
-           bpy.ops.screen.frame_jump()
+            try:
+                self.actionObj.animation_data.action = bpy.data.actions[act]
+                bpy.ops.screen.frame_jump()
+            except KeyError:
+                rospy.logerror("Unsuported animation name: " + act)
+                self.actionObj.animation_data.action = None
 
     def playAnimation(self):
         if not bpy.context.screen.is_animation_playing:
@@ -32,6 +36,4 @@ class Animate:
     def resetAnimation(self):
         bpy.ops.screen.frame_jump()
         self.stopAnimation()
-
-
 
