@@ -12,7 +12,7 @@ Blender context.  It uses different modes to control the rig, with
 different modes used for different rigs.
 
 Currently only one rig is included:
-  * robo.blend
+  * robo.blend -- the Dmitry head
 
 The last working version of the Einstein rig is in the branch named
 "einstein-dev".
@@ -53,10 +53,10 @@ Verify that the ROS node has started:  `rostopic list -v` should show
 Listens for /cmd_blender to switch between the different blender nodes.
 The currently supported modes are:
  * LookAround  -- random looking about
- * Manual Head -- manual control from blender, debugging
  * TrackDev    -- head/eyes track a region of interest
  * Animations  -- menu of scripted animations
- * Dummy       --
+ * Manual Head -- manual control from blender, debugging
+ * Dummy       -- ??
 
 ### LookAround
 Move the head and eyes in an endless cycle. Movements are defined via
@@ -74,22 +74,22 @@ For example:
   * eyes - publishes eyes movements
 
 
-### Manual Head
-Used for animation development and debugging. Allows the designer
-to control and move the rig, thus controlling the physical robot head.
-
-##### Outputs:
-  * full_head  - publishes expressions for neck and eyes positions.
-
-
 ### TrackDev
-Eyes and head track targets defined by region of interest (typically
-obtained via camera viedo processing).  Maintains two targets from
-the scene. The target to be tracked is selected with the
-/tracking_action topic.
+Eyes and head track a target, defined by a region of interest (ROI).
+The system maintains multiple targets visible in the scene. The target
+that will be tracked is selected with the /tracking_action topic.
 
 For example:
    rostopic pub /cmd_blendermode std_msgs/String TrackDev
+
+Each ROI is denoted with a cube 
+
+Currently, the ROI's are human faces, extracted by pi_vision from a usb
+video camera feed.  Multiple cameras can be supported by adding them to
+src/config/inputs.yaml.  Each pi_vision node should run in it's own ROS
+namespace.  The default (root node) camera is bound to chest_pivision
+(configurable in inputs.yaml).  The eye namespace (export ROS_NAMESPACE=eye)
+is currently bound to eye_pivision.
 
 ##### Topics subscribed:
   * /tracking_action (eva_behavior/tracking_action) - Listens for
@@ -98,13 +98,13 @@ For example:
 
 #### Inputs
   * chest_pivision (NRegionsOfInterest) - populates the scene with ROI
-    from chest camera
+    from chest camera.
   * eye_pivision (NRegionsOfInterest) - populates the scene with ROI
-    from eye camera
+    from eye camera.
 
 ##### Outputs
-  * neck_euler - publishes neck angle
-  * eyes - publishes eyes movements
+  * neck_euler - publishes neck angle.
+  * eyes - publishes eyes movements.
 
 
 ### Animations
@@ -129,6 +129,14 @@ For example:
 
 ##### Outputs:
   * full_head - publishes expression neck and eyes information.
+
+
+### Manual Head
+Used for animation development and debugging. Allows the designer
+to control and move the rig, thus controlling the physical robot head.
+
+##### Outputs:
+  * full_head  - publishes expressions for neck and eyes positions.
 
 
 ### Dummy
@@ -164,3 +172,49 @@ The following outputs are currently used:
   * neck_euler_beorn  - gets Beorn's rig neck rotation in Euler angles
     and publishes in basic_head_api.msg/PointHead
   * full_head - combines face, neck_euler_beorn, eyes_beorn outputs to one.
+
+
+#Cookbook recipes
+
+Example LookAround Mode
+```
+	# Start blender, load head, start scripts
+	blender ./robo_blender/src/robo.blend --enable-autoexec -P ./robo_blender/src/startup.py
+
+	# Start the look-around mode
+	rostopic pub --once /cmd_blendermode std_msgs/String LookAround
+
+	# Verify that tracking output is sent to the PAU motors
+	rostopic echo /dmitry/cmd_eyes_pau
+```
+
+Example TrackingDev Mode.
+```
+	# Make sure all packages can be found.
+	export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:... uvc_cam, pi_vision, etc.
+
+	# Start up the video camera.  Use uvc_cam from hansonrobotics github.
+	roslaunch uvc_cam uvc_cam.launch device:=/dev/video0
+
+	# Verify camera is working
+	rosrun image_view image_view image:=/camera/image_raw
+
+	# Start pi_vision face tracker
+	roslaunch pi_face_tracker face_tracker_uvc_cam.launch
+
+	# Start blender, load head, start scripts
+	blender ./robo_blender/src/robo.blend --enable-autoexec -P ./robo_blender/src/startup.py
+
+	# Start the tracker
+	rostopic pub /cmd_blendermode std_msgs/String TrackDev
+
+	# XXX who publishes tracking_event?
+
+	# XXX How to list the valid values for tracking_action?
+
+	# XXX Set the roi to track.
+	rostopic pub /tracking_action eva_behavior/tracking_action XXX ???
+
+	# Verify that tracking output is sent to the PAU motors
+	rostopic echo /dmitry/cmd_eyes_pau
+```

@@ -21,6 +21,7 @@
     sourcetopic: faces/%d
   blenderbind:
     objectpos:
+      # coordinates of the center of the webcam screen in blender space.
       offset: [0.008,-1,0.458737]
       scale: 1.5
 
