@@ -218,3 +218,20 @@ Example TrackingDev Mode.
 	# Verify that tracking output is sent to the PAU motors
 	rostopic echo /dmitry/cmd_eyes_pau
 ```
+Example Multi-camera TrackingDev Mode. Same as above, except that new
+cameras are now added:
+```
+	# Specify the 'eye' namespace
+	export ROS_NAMESPACE=eye
+
+	# Start up the video camera, but on a different vido device.
+	roslaunch uvc_cam uvc_cam.launch device:=/dev/video1
+
+	# Verify camera is working
+	rosrun image_view image_view image:=/eye/camera/image_raw
+
+	# Start pi_vision face tracker with the alternate camera
+	# XXX this doesn't work ...
+	roslaunch pi_face_tracker face_tracker_uvc_cam.launch input_rgb_image:=/eye/camera/image_raw
+
+```
