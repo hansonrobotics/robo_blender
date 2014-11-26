@@ -40,7 +40,7 @@ class Animations:
             # animation name was provided.
             if 1 < len(data):
                 if not data[1] in self.animationsList:
-                    print("Error: Unknown animation: " + data[1])
+                    rospy.logerr("Unknown animation: " + data[1])
                 else:
                     self.next = data[1]
 
@@ -48,12 +48,15 @@ class Animations:
         elif command == 'stop':
             self.command = 'stop'
             self.next = None
+            if not self.isPlaying:
+                rospy.logwarn("Stop: no animation playing")
 
         # Pause animation immediatly
         elif command == 'pause':
             self.command = 'pause'
+
         else:
-            print("Error: Unsupported command: " + command)
+            rospy.logerr("Unsupported command: " + command)
 
     # Sets next animation
     def _setNext(self):
@@ -87,10 +90,15 @@ class Animations:
                     if self.current:
                         self.isPlaying = True
                         self.anim.playAnimation()
+                    else:
+                        rospy.logwarn("Play: no pending animation to restart")
+
             elif self.command == 'pause':
                 if self.isPlaying:
                     self.anim.stopAnimation()
                     self.isPlaying = False
+                else:
+                    rospy.logwarn("Pause: no animation playing, can't pause")
             self.command = None
 
         if self.isPlaying:

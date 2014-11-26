@@ -22,7 +22,7 @@ class Animate:
                 self.actionObj.animation_data.action = bpy.data.actions[act]
                 bpy.ops.screen.frame_jump()
             except KeyError:
-                print("Error: Unsuported animation name: " + act)
+                rospy.logerror("Unsuported animation name: " + act)
                 self.actionObj.animation_data.action = None
 
     def playAnimation(self):
