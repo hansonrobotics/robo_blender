@@ -64,7 +64,7 @@ a python script in the rig.  The movements are randomly generated, with
 eyes moving faster than head.
 
 For example:
-   rostopic pub /cmd_blendermode std_msgs/String LookAround
+   rostopic pub --once /cmd_blendermode std_msgs/String LookAround
 
 ##### Inputs:
   * (none)
@@ -80,9 +80,9 @@ The system maintains multiple targets visible in the scene. The target
 that will be tracked is selected with the /tracking_action topic.
 
 For example:
-   rostopic pub /cmd_blendermode std_msgs/String TrackDev
+   rostopic pub --once /cmd_blendermode std_msgs/String TrackDev
 
-Each ROI is denoted with a cube 
+Each ROI is denoted with a cube.
 
 Currently, the ROI's are human faces, extracted by pi_vision from a usb
 video camera feed.  Multiple cameras can be supported by adding them to
@@ -118,14 +118,14 @@ No error is thrown if an invalid animation name is specified.
 Animations are currently implemented only the Beorn rig.
 
 For example:
-   rostopic pub /cmd_blendermode std_msgs/String Animations
+   rostopic pub --once /cmd_blendermode std_msgs/String Animations
 
 ##### Topics subscribed:
   * cmd_animations(std_msgs/String) - colon separated string which
     sends command (play,stop, pause) follwed optionaly the animation name.
 
     For example:
-    rostopic pub /cmd_blendermode std_msgs/String play:blah
+    rostopic pub --once /cmd_animations std_msgs/String play:yawn-1
 
 ##### Outputs:
   * full_head - publishes expression neck and eyes information.
@@ -143,7 +143,7 @@ to control and move the rig, thus controlling the physical robot head.
 Idle.
 
 For example:
-   rostopic pub /cmd_blendermode std_msgs/String Dummy
+   rostopic pub --once /cmd_blendermode std_msgs/String Dummy
 
 ## Inputs
 Mainly one input class is currently used:
@@ -234,4 +234,30 @@ cameras are now added:
 	# XXX this doesn't work ...
 	roslaunch pi_face_tracker face_tracker_uvc_cam.launch input_rgb_image:=/eye/camera/image_raw
 
+```
+
+Example Animations Mode
+
+This requies a blender file containing animations.  The blender file
+should be placed into the ./robo_blender/src/ directory, else the
+relative path names for loading main.py will not work.
+
+```
+	# Start blender, load head, start scripts
+	blender ./animations.blend --enable-autoexec -P ./robo_blender/src/startup.py
+
+	# Start the animations mode
+	rostopic pub --once /cmd_blendermode std_msgs/String Animations
+
+	# Obtain the list of supported animations
+	rostopic echo -n 1 /animations_list
+
+	# Perform one of the supported animations
+	rostopic pub --once /cmd_animations std_msgs/String play:shake-1
+
+	# Verify that tracking output is sent to the PAU motors
+	rostopic echo /dmitry/cmd_eyes_pau
+
+	# Halt the animation
+	rostopic pub --once /cmd_animations std_msgs/String stop
 ```
