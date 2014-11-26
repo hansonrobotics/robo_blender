@@ -7,7 +7,10 @@ import copy
 import posixpath
 
 class Face:
-
+  """
+  Keep track of a single ROI (i.e. a single face in the field of view).
+  Subscribes to roi topic, updates its position in blender space.
+  """
   def __init__(self, face_id, confentry, get_camerainfo):
     face_id = int(face_id)
 
