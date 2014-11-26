@@ -43,7 +43,7 @@ is not started until one of the following is performed:
  * Hover mouse over the text editor and press Alt+P
  * Select the text-editor menu "Edit->Run Script" item.
    (the text-editor menu is at bottom-left).
- * Start blender as `blender robo.blend -P startup.py`
+ * Start blender as `blender robo.blend --enable-autoexec -P startup.py`
 
 Verify that the ROS node has started:  `rostopic list -v` should show
 `/cmd_blendermode` as a subscribed topic.
