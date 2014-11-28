@@ -37,11 +37,14 @@ class RoboBlender:
 
 
   def handle_blendermode(self, msg):
-    #disable if mode not allowed
+    # Disable if mode not allowed
     msg = msg.data
     if not msg in self.modes:
-        msg = 'Dummy'
+      rospy.loginfo("Unsupported mode %s" % msg)
+      msg = 'Dummy'
 
+    # ??? XXX FIXME, above line prevents disable from ever getting
+    # through... since 'disable' is not one of the modes...
     if msg == "disable":
       modes.disable()
     else:
@@ -67,7 +70,7 @@ class RoboBlender:
       Utils.read_yaml(os.path.join(self.config_dir, "outputs.yaml"))
     )
     rospy.Subscriber('cmd_blendermode', String, self.handle_blendermode)
-    
+
     @persistent
     def handle_scene_update(dummy):
       # Check whether to shut down
@@ -89,9 +92,10 @@ class RoboBlender:
       # invokes blender to call handle_scene_update again
 
 
-
     self.lastframe = time.time()
     bpy.app.handlers.scene_update_pre.append(handle_scene_update)
+
+    rospy.loginfo("Available modes: " + str(self.modes).strip('[]'))
 
     # Enable default mode
     modes.enable("Dummy")
@@ -101,9 +105,9 @@ class RoboBlender:
     self.config = Utils.read_yaml(os.path.join(self.config_dir, "config.yaml"))
     self.frame_interval = 1.0/self.config["fps"]
     if 'targets' in bpy.data.objects:
-      self.modes = ['TrackDev', 'LookAround']
+      self.modes = ['Dummy', 'TrackDev', 'LookAround']
     else:
-      self.modes = ['Animations']
+      self.modes = ['Dummy', 'Animations']
 
 print("ROBO: Loading")
 robo = RoboBlender()

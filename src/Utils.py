@@ -121,8 +121,9 @@ def read_yaml(yamlname, loader_filepath=None):
 
 def import_member(name):
   """
-  Behaves like importlib.import_module except takes a path to a member (a class or a
-  function) inside a module, instead of a path to a module.
+  Behaves like importlib.import_module except that this takes a path
+  to a member (a class or a function) inside a module, instead of a 
+  path to a module.
   """
   path = name.split(".")
   module = importlib.import_module((".".join(path[:-1])))
