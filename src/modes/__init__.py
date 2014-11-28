@@ -48,7 +48,7 @@ def enable(mode_name):
   # Taking this out of the try-except block to not catch AttributeErrors
   # during initialization.
   global active
-  active = mode() 
+  active = mode()
 
 def disable():
   global active

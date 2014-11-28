@@ -1,7 +1,8 @@
 import bpy
 
 class Animate:
-    """Start and stop one of the animations supported by the rig"""
+    """Low-level interface to blender.  Extracts the list of supported
+    animations from blender. Starts and stops the indicated animation."""
     def __init__(self, obj):
         #Object for which actions is applied
         self.actionObj = bpy.data.objects[obj]

@@ -8,7 +8,7 @@ import random
 import math
 
 class ImaginaryObject:
-  
+
   location = Vector((0.0, 0.0, 0.0))
 
   @staticmethod
@@ -29,14 +29,14 @@ class ImaginaryObject:
   def __init__(self, space_mu_sig, time_mu_sig):
     """
     Arguments:
-    * space_mu_sig: tuple (Vector around which to generate random location, standard deviation of the radius) 
+    * space_mu_sig: tuple (Vector around which to generate random location, standard deviation of the radius)
     * time_mu_sig: tuple (Average time in which to generate new location, standard deviation of that time)
     """
     self.space_mu_sig = space_mu_sig
     self.timer = tracking.RandomTimer(time_mu_sig, True)
 
 class LookAround:
-
+  """ Implemeent the LookAround mode."""
   def step(self, dt):
     self.interest.step(dt)
     self.tracking_ctrl.step(dt)
