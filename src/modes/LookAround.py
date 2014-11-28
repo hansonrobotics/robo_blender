@@ -36,7 +36,7 @@ class ImaginaryObject:
     self.timer = tracking.RandomTimer(time_mu_sig, True)
 
 class LookAround:
-
+  """ Implemeent the LookAround mode."""
   def step(self, dt):
     self.interest.step(dt)
     self.tracking_ctrl.step(dt)

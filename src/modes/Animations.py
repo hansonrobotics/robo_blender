@@ -10,8 +10,10 @@ from robo_blender.msg import animations_list
 
 class Animations:
     """
-    Transmits the current neck, face and eye position without actually
-    controlling anything.
+    Subscribes to the /cmd_animations topic, and listens for play,
+    pause and stop messages. Queues up and starts/runs the animations
+    appropriately.  Also published the list of supported animations
+    at /animations_list.
     """
     def __init__(self):
         # Next playing animation. If not set animation stops
