@@ -215,10 +215,11 @@ up and running.
 	# Start blender, load head, start scripts
 	blender ./robo_blender/src/robo.blend --enable-autoexec -P ./robo_blender/src/startup.py
 
+	# Start the eva_behavior node
+	rosrun eva_behavior general_behavior.py
+
 	# Start the tracker
 	rostopic pub /cmd_blendermode std_msgs/String TrackDev
-
-	# XXX who publishes tracking_event?
 
 	# XXX How to list the valid values for tracking_action?
 
