@@ -75,8 +75,9 @@ class InstanceStore:
           raise NameError("Output name %s is reserved" % confentry["name"])
         self._store_instance(confentry["name"], self._build_single(confentry))
       except:
+        print("Exception during output '%s' load:" % confentry["name"])
         traceback.print_exc()
-        rospy.logwarn("Couldn't load input %s" % confentry["name"])
+        rospy.logwarn("Couldn't load output '%s'" % confentry["name"])
 
 store = None
 

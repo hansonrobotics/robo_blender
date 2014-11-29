@@ -19,7 +19,7 @@
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_coeffs
-      shkey_mesh: Neutral.001
+      shkey_mesh: Head
 
 - name: eyes
   class: state.ParametersOut
