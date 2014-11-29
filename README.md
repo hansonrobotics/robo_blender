@@ -3,8 +3,10 @@
 This provides a ROS node which may be used to control Blender rigs,
 and to publish the resulting rig position information (for the neck,
 face, eyes).  The position information can then be used to drive motors
-(for example).  The [pau2motors](pau2motors) ROS node will listen to
-the published messages to control the Einstein and Dmitry robot heads.
+(for example).  The 
+[pau2motors](http://github.com/hansonrobotics/pau2motors) ROS node
+will listen to the published messages to control the Einstein and
+Dmitry robot heads.
 
 The node is started within Blender, and has direct access to the
 Blender context.  It uses different modes to control the rig, with
@@ -35,7 +37,8 @@ This can be worked-around as follows:
     python3 setup.py install
 
 ## Co-requisites
-The tracking mode requires that [eva_behavior](eva_behavior) ROS node
+The tracking mode requires that 
+[eva_behavior](http://github.com/hansonrobotics/eva_behavior) ROS node
 be set up and running.  Additional instructions in the 'cookbook'
 section, below.
 
