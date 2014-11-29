@@ -3,16 +3,15 @@
 This provides a ROS node which may be used to control Blender rigs,
 and to publish the resulting rig position information (for the neck,
 face, eyes).  The position information can then be used to drive motors
-(for example).  The https://github.com/hansonrobotics/pau2motors ROS
-node will listen to the published messages to control the Einstein
-and Dmitry robot heads.
+(for example).  The [pau2motors] ROS node will listen to the published
+messages to control the Einstein and Dmitry robot heads.
 
 The node is started within Blender, and has direct access to the
 Blender context.  It uses different modes to control the rig, with
 different modes used for different rigs.
 
 Currently only one rig is included:
-  * robo.blend -- the Dmitry head
+  * robo.blend -- the Arthur head
 
 The last working version of the Einstein rig is in the branch named
 "einstein-dev".
@@ -35,6 +34,9 @@ This can be worked-around as follows:
     cd catkin_pkg
     python3 setup.py install
 
+## Co-requisites
+The tracking mode requires that [eva_behavior] ROS node be set up and
+running.  Additional instructions in the 'cookbook' section, below.
 
 ## Running
 To run, start blender, and load the robo.blend rig file.  The ROS node
@@ -174,9 +176,11 @@ The following outputs are currently used:
   * full_head - combines face, neck_euler_beorn, eyes_beorn outputs to one.
 
 
-#Cookbook recipes
+# Cookbook recipes
 
-Example LookAround Mode
+## Example LookAround Mode
+The default rig demonstrates the LookAround mode.
+
 ```
 	# Start blender, load head, start scripts
 	blender ./robo_blender/src/robo.blend --enable-autoexec -P ./robo_blender/src/startup.py
@@ -188,7 +192,9 @@ Example LookAround Mode
 	rostopic echo /dmitry/cmd_eyes_pau
 ```
 
-Example TrackingDev Mode.
+## Example TrackingDev Mode.
+The TrackingDev mode requires that the [eva_behavior] ROS node be set
+up and running.
 ```
 	# Make sure all packages can be found.
 	export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:... uvc_cam, pi_vision, etc.
@@ -236,15 +242,17 @@ cameras are now added:
 
 ```
 
-Example Animations Mode
+## Example Animations Mode
 
-This requies a blender file containing animations.  The blender file
-should be placed into the ./robo_blender/src/ directory, else the
-relative path names for loading main.py will not work.
+This requies a blender file that contains animations.  The Dmitry rig
+will do.  The blender file should be placed into the
+`./robo_blender/src/` directory, else the relative path names for
+loading `main.py` will not work.
 
 ```
-	# Start blender, load head, start scripts
-	blender ./animations.blend --enable-autoexec -P ./robo_blender/src/startup.py
+	# Start blender, load head, start scripts.
+	# The Dmitry head must be copied into the robo_blender/src folder.
+	blender ./robo_blender/src/dmitry.blend --enable-autoexec -P ./robo_blender/src/startup.py
 
 	# Start the animations mode
 	rostopic pub --once /cmd_blendermode std_msgs/String Animations
@@ -257,6 +265,12 @@ relative path names for loading main.py will not work.
 
 	# Verify that tracking output is sent to the PAU motors
 	rostopic echo /dmitry/cmd_eyes_pau
+
+	# Pause the animation
+	rostopic pub --once /cmd_animations std_msgs/String pause
+
+	# Restart the animation
+	rostopic pub --once /cmd_animations std_msgs/String play
 
 	# Halt the animation
 	rostopic pub --once /cmd_animations std_msgs/String stop
