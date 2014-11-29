@@ -1,6 +1,6 @@
 import Utils
 import inspect
-import sys
+import traceback
 import rospy
 
 __doc__ = """
@@ -77,6 +77,8 @@ class InstanceStore:
       except:
         traceback.print_exc()
         rospy.logwarn("Couldn't load input %s" % confentry["name"])
+
+store = None
 
 def initialize(fullconfig):
   global store
