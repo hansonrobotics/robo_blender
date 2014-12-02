@@ -45,17 +45,22 @@ class Animations:
                     rospy.logerr("Unknown animation: " + data[1])
                 else:
                     self.next = data[1]
+                    rospy.loginfo("Next animation: " + self.next)
+            elif self.current:
+                rospy.loginfo("Resume animation: " + self.current)
 
         # Halt animation and stops playing
         elif command == 'stop':
             self.command = 'stop'
             self.next = None
+            rospy.loginfo("Stop animation")
             if not self.current:
                 rospy.logwarn("Stop: no animation playing")
 
         # Pause animation immediatly
         elif command == 'pause':
             self.command = 'pause'
+            rospy.loginfo("Pause animation")
 
         else:
             rospy.logerr("Unsupported command: " + command)
