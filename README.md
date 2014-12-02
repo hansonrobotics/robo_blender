@@ -262,7 +262,8 @@ loading `main.py` will not work.
 	# Start the animations mode
 	rostopic pub --once /cmd_blendermode std_msgs/String Animations
 
-	# Obtain the list of supported animations
+	# Obtain the list of supported animations. The result should show:
+	# actions: ['angry-1', 'sad-1', 'happy-1', 'surprised-1']
 	rostopic echo -n 1 /animations_list
 
 	# Perform one of the supported animations
