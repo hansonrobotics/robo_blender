@@ -257,7 +257,7 @@ loading `main.py` will not work.
 ```
 	# Start blender, load head, start scripts.
 	# The Dmitry head must be copied into the robo_blender/src folder.
-	blender ./robo_blender/src/dmitry.blend --enable-autoexec -P ./robo_blender/src/startup.py
+	blender ./robo_blender/src/dmitry-mesh.anim_test.blend --enable-autoexec -P ./robo_blender/src/startup.py
 
 	# Start the animations mode
 	rostopic pub --once /cmd_blendermode std_msgs/String Animations
@@ -266,7 +266,7 @@ loading `main.py` will not work.
 	rostopic echo -n 1 /animations_list
 
 	# Perform one of the supported animations
-	rostopic pub --once /cmd_animations std_msgs/String play:shake-1
+	rostopic pub --once /cmd_animations std_msgs/String play:sad-1
 
 	# Verify that tracking output is sent to the PAU motors
 	rostopic echo /dmitry/cmd_eyes_pau
