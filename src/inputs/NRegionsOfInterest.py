@@ -21,19 +21,23 @@ class Face:
     )
     blenderbind = copy.deepcopy(confentry["blenderbind"])
     blenderbind["objectpos"]["name"] = source_topic
+    # Blender file with animations sometimes throw exception.
+    # As we do not need the input for it, we can ignore it.
+    try:
+        #Nest an ObjectInBlender instance
+        self.obj_in_blender = ObjectInBlender.from_binding(blenderbind)
 
-    #Nest an ObjectInBlender instance
-    self.obj_in_blender = ObjectInBlender.from_binding(blenderbind)
+        self.id = face_id
+        self.get_camerainfo = get_camerainfo
 
-    self.id = face_id
-    self.get_camerainfo = get_camerainfo
-
-    #Subscribe to generated topic
-    self.topic = rospy.Subscriber(
-      source_topic,
-      sensor_msgs.msg.RegionOfInterest,
-      self.obj_in_blender._pend_msg(self._handle_source)
-    )
+        #Subscribe to generated topic
+        self.topic = rospy.Subscriber(
+          source_topic,
+          sensor_msgs.msg.RegionOfInterest,
+          self.obj_in_blender._pend_msg(self._handle_source)
+        )
+    except RuntimeError:
+        pass
 
   def destroy(self):
     self.topic.unregister()
