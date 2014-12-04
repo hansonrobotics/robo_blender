@@ -43,12 +43,7 @@ class RoboBlender:
       rospy.loginfo("Unsupported mode %s" % msg)
       msg = 'Dummy'
 
-    # ??? XXX FIXME, above line prevents disable from ever getting
-    # through... since 'disable' is not one of the modes...
-    if msg == "disable":
-      modes.disable()
-    else:
-      modes.enable(msg)
+    modes.enable(msg)
 
   def step(self, dt):
     inputs.execute_pending()
@@ -63,9 +58,12 @@ class RoboBlender:
     blparams.set("running", True)
 
     rospy.init_node('robo_blender', anonymous=True)
-    inputs.initialize(
-      Utils.read_yaml(os.path.join(self.config_dir, "inputs.yaml"))
-    )
+
+    inputs_config = []
+    # current animations blender file do not require inputs
+    if not 'Animations' in self.modes:
+        inputs_config =  Utils.read_yaml(os.path.join(self.config_dir, "inputs.yaml"))
+    inputs.initialize(inputs_config)
     outputs.initialize(
       Utils.read_yaml(os.path.join(self.config_dir, "outputs.yaml"))
     )
