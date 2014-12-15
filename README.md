@@ -6,7 +6,7 @@ face, eyes).  The position information can then be used to drive motors
 (for example).  The 
 [pau2motors](http://github.com/hansonrobotics/pau2motors) ROS node
 will listen to the published messages to control the Einstein and
-Dmitry robot heads.
+arthur robot heads.
 
 The node is started within Blender, and has direct access to the
 Blender context.  It uses different modes to control the rig, with
@@ -193,7 +193,7 @@ The default rig demonstrates the LookAround mode.
 	rostopic pub --once /cmd_blendermode std_msgs/String LookAround
 
 	# Verify that tracking output is sent to the PAU motors
-	rostopic echo /dmitry/cmd_eyes_pau
+	rostopic echo /arthur/cmd_eyes_pau
 ```
 
 ## Example TrackingDev Mode.
@@ -227,7 +227,7 @@ up and running.
 	rostopic pub /tracking_action eva_behavior/tracking_action XXX ???
 
 	# Verify that tracking output is sent to the PAU motors
-	rostopic echo /dmitry/cmd_eyes_pau
+	rostopic echo /arthur/cmd_eyes_pau
 ```
 Example Multi-camera TrackingDev Mode. Same as above, except that new
 cameras are now added:
@@ -249,15 +249,15 @@ cameras are now added:
 
 ## Example Animations Mode
 
-This requies a blender file that contains animations.  The Dmitry rig
+This requies a blender file that contains animations.  The arthur rig
 will do.  The blender file should be placed into the
 `./robo_blender/src/` directory, else the relative path names for
 loading `main.py` will not work.
 
 ```
 	# Start blender, load head, start scripts.
-	# The Dmitry head must be copied into the robo_blender/src folder.
-	blender ./robo_blender/src/dmitry-mesh.anim_test.blend --enable-autoexec -P ./robo_blender/src/startup.py
+	# The arthur head must be copied into the robo_blender/src folder.
+	blender ./robo_blender/src/arthur-mesh.anim_test.blend --enable-autoexec -P ./robo_blender/src/startup.py
 
 	# Start the animations mode
 	rostopic pub --once /cmd_blendermode std_msgs/String Animations
@@ -270,7 +270,7 @@ loading `main.py` will not work.
 	rostopic pub --once /cmd_animations std_msgs/String play:sad-1
 
 	# Verify that tracking output is sent to the PAU motors
-	rostopic echo /dmitry/cmd_eyes_pau
+	rostopic echo /arthur/cmd_eyes_pau
 
 	# Pause the animation
 	rostopic pub --once /cmd_animations std_msgs/String pause

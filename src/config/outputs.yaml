@@ -2,7 +2,7 @@
 - name: neck_euler
   class: state.ParametersOut
   enabled: true
-  pubtopic: dmitry/point_head
+  pubtopic: arthur/point_head
   msg: basic_head_api.msg.PointHead
   binding: #bonerot format: armature_obj:bone:axis
     - varpath: yaw
@@ -15,7 +15,7 @@
 - name: face
   class: state.ParametersOut
   enabled: true
-  pubtopic: dmitry/cmd_face_pau
+  pubtopic: arthur/cmd_face_pau
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_coeffs
@@ -24,7 +24,7 @@
 - name: eyes
   class: state.ParametersOut
   enabled: true
-  pubtopic: dmitry/cmd_eyes_pau
+  pubtopic: arthur/cmd_eyes_pau
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_eyeGazeLeftPitch
@@ -57,7 +57,7 @@
 - name: eyes_beorn
   class: state.ParametersOut
   enabled: true
-  pubtopic: /dmitry/cmd_eyes_pau
+  pubtopic: /arthur/cmd_eyes_pau
   msg: pau2motors.msg.pau
   binding:
     - varpath: m_eyeGazeLeftPitch
@@ -72,7 +72,7 @@
 - name: neck_euler_beorn
   class: state.ParametersOut
   enabled: true
-  pubtopic: /dmitry/point_head
+  pubtopic: /arthur/point_head
   msg: basic_head_api.msg.PointHead
   binding: #bonerot format: armature_obj:bone:axis[:parent_bone]
     - varpath: yaw
