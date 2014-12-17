@@ -19,7 +19,24 @@ Currently two rigs are included:
 The last working version of the Einstein rig is in the branch named
 "einstein-dev". It has not been kept up to date.
 
-## Pre-requisites
+# Running
+The easiest way to run this node is to use it with a Docker container.
+Docker containers specify all of the pre-requisite software components 
+that are needed to in order for a demo to be run.  An all-in-one
+containder for this node has been defined at
+[opencog/ros](http://github.com/opencog/ros), in the ros-indigo-animation
+image.  The demo process is then:
+
+ * Install docker
+ * git clone http://github.com/opencog/ros
+ * cd opencog/ros/indigo
+ * ./build-all.sh
+ * cd animation and follow instructions in the README file there.
+
+If you do the above, you can skip the Manual Install steps below.
+
+## Manual Install and Operation
+### Pre-requisites
 The following packages need to be installed:
 
     apt-get install python3-yaml python3-rospkg
@@ -37,13 +54,13 @@ This can be worked-around as follows:
     cd catkin_pkg
     python3 setup.py install
 
-## Co-requisites
+### Co-requisites
 The tracking mode requires that 
 [eva_behavior](http://github.com/hansonrobotics/eva_behavior) ROS node
 be set up and running.  Additional instructions in the 'cookbook'
 section, below.
 
-## Running
+### Running
 To run, start blender, and load the robo.blend rig file.  The ROS node
 is not started until one of the following is performed:
 
@@ -55,7 +72,7 @@ is not started until one of the following is performed:
 Verify that the ROS node has started:  `rostopic list -v` should show
 `/cmd_blendermode` as a subscribed topic.
 
-## Modes
+# Modes
 
 Listens for /cmd_blender to switch between the different blender nodes.
 The currently supported modes are:
