@@ -14,7 +14,10 @@ different modes used for different rigs.
 
 Currently two rigs are included:
   * robo.blend -- Arthur rig, can look around, track objects.
-  * animate-test.blend -- rig, can animate four basic expressions.
+  * animate-test.blend -- Arthur rig, can animate four basic expressions.
+
+Although both of these rigs are "Arthur", they are not compatible
+with each other.
 
 The last working version of the Einstein rig is in the branch named
 "einstein-dev". It has not been kept up to date.
@@ -60,9 +63,10 @@ The tracking mode requires that
 be set up and running.  Additional instructions in the 'cookbook'
 section, below.
 
-### Running
-To run, start blender, and load the robo.blend rig file.  The ROS node
-is not started until one of the following is performed:
+### Manual start
+To run, start blender, and load either the robo.blend or the
+animate-test.blend rig file.  The ROS node is not started until
+one of the following is performed:
 
  * Hover mouse over the text editor and press Alt+P
  * Select the text-editor menu "Edit->Run Script" item.
@@ -72,15 +76,30 @@ is not started until one of the following is performed:
 Verify that the ROS node has started:  `rostopic list -v` should show
 `/cmd_blendermode` as a subscribed topic.
 
+Don't forget to start `roscore` first.
+
 # Modes
 
-Listens for /cmd_blender to switch between the different blender nodes.
-The currently supported modes are:
- * LookAround  -- random looking about
- * TrackDev    -- head/eyes track a region of interest
- * Animations  -- menu of scripted animations
- * Manual Head -- manual control from blender, debugging
- * Dummy       -- ??
+The rigs have several different modes in which they can operate. These
+are:
+
+ * LookAround  -- Random looking about.
+ * TrackDev    -- Head/eyes track a region of interest.
+ * Animations  -- Menu of scripted animations.
+ * Manual Head -- Manual control from blender, debugging
+ * Dummy       -- Do nothing. Neutral expression.
+
+The mode is set by sending one of the above modes, as a string,
+to the `/cmd_blender` topic.  For example:
+
+`rostopic pub --once /cmd_blendermode std_msgs/String LookAround`
+
+Both rigs listen for `/cmd_blender` to switch between the different
+blender nodes.
+
+Currently, only the `robo.blend` rig can respond to the LookAround
+and TrackDev modes.  In contrast, only the `animate.blend` rig can
+respond to the Animations mode.  Sorry!
 
 ### LookAround
 Move the head and eyes in an endless cycle. Movements are defined via
@@ -88,7 +107,7 @@ a python script in the rig.  The movements are randomly generated, with
 eyes moving faster than head.
 
 For example:
-   rostopic pub --once /cmd_blendermode std_msgs/String LookAround
+   `rostopic pub --once /cmd_blendermode std_msgs/String LookAround`
 
 ##### Inputs:
   * (none)
@@ -104,7 +123,7 @@ The system maintains multiple targets visible in the scene. The target
 that will be tracked is selected with the /tracking_action topic.
 
 For example:
-   rostopic pub --once /cmd_blendermode std_msgs/String TrackDev
+   `rostopic pub --once /cmd_blendermode std_msgs/String TrackDev`
 
 Each ROI is denoted with a cube.
 
@@ -137,19 +156,17 @@ within the blender rig.  The list of valid animations can be obtained
 with the /animations_list topic; this topic list is NOT published until
 the rig is placed in animation mode.
 
-No error is thrown if an invalid animation name is specified.
-
-Animations are currently implemented only the Beorn rig.
+Only the `animate.blend` rig supports Animations mode.
 
 For example:
-   rostopic pub --once /cmd_blendermode std_msgs/String Animations
+   `rostopic pub --once /cmd_blendermode std_msgs/String Animations`
 
 ##### Topics subscribed:
   * cmd_animations(std_msgs/String) - colon separated string which
     sends command (play,stop, pause) follwed optionaly the animation name.
 
     For example:
-    rostopic pub --once /cmd_animations std_msgs/String play:yawn-1
+    `rostopic pub --once /cmd_animations std_msgs/String play:yawn-1`
 
 ##### Outputs:
   * full_head - publishes expression neck and eyes information.
@@ -167,9 +184,9 @@ to control and move the rig, thus controlling the physical robot head.
 Idle.
 
 For example:
-   rostopic pub --once /cmd_blendermode std_msgs/String Dummy
+   `rostopic pub --once /cmd_blendermode std_msgs/String Dummy`
 
-## Inputs
+# Inputs
 Mainly one input class is currently used:
   * NRegionsOfInterest - Listens to the specified *eventtopic* for
     eva_behavior/tracking_event messages, which inform about new and
@@ -182,7 +199,7 @@ Mainly one input class is currently used:
   * Faceshift - allows input from faceshift, changes shapekeys
     of the face mesh.
 
-## Outputs
+# Outputs
 Outputs are used to publish rig data back to ROS.  ROS topics are
 defined in config.
 
