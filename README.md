@@ -6,17 +6,18 @@ face, eyes).  The position information can then be used to drive motors
 (for example).  The 
 [pau2motors](http://github.com/hansonrobotics/pau2motors) ROS node
 will listen to the published messages to control the Einstein and
-arthur robot heads.
+Arthur robot heads.
 
 The node is started within Blender, and has direct access to the
 Blender context.  It uses different modes to control the rig, with
 different modes used for different rigs.
 
-Currently only one rig is included:
-  * robo.blend -- the Arthur head
+Currently two rigs are included:
+  * robo.blend -- Arthur rig, can look around, track objects.
+  * animate-test.blend -- rig, can animate four basic expressions.
 
 The last working version of the Einstein rig is in the branch named
-"einstein-dev".
+"einstein-dev". It has not been kept up to date.
 
 ## Pre-requisites
 The following packages need to be installed:
@@ -249,15 +250,14 @@ cameras are now added:
 
 ## Example Animations Mode
 
-This requies a blender file that contains animations.  The arthur rig
-will do.  The blender file should be placed into the
+This requies a blender file that contains animations.  The animate-test
+(another Arthur rig) will do.  The blender file should be kept in the
 `./robo_blender/src/` directory, else the relative path names for
 loading `main.py` will not work.
 
 ```
 	# Start blender, load head, start scripts.
-	# The arthur head must be copied into the robo_blender/src folder.
-	blender ./robo_blender/src/arthur-mesh.anim_test.blend --enable-autoexec -P ./robo_blender/src/startup.py
+	blender ./robo_blender/src/animate-test.blend --enable-autoexec -P ./robo_blender/src/startup.py
 
 	# Start the animations mode
 	rostopic pub --once /cmd_blendermode std_msgs/String Animations
