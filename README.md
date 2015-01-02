@@ -153,10 +153,11 @@ is currently bound to eye_pivision.
 ### Animations
 Plays pre-defined animations.  These are defined as object actions
 within the blender rig.  The list of valid animations can be obtained
-with the /animations_list topic; this topic list is NOT published until
-the rig is placed in animation mode.
+in two ways: using the old `/animations_list` topic or the new
+`/blender_api/available_emotion_states` topic.  Neither topic list is
+published until the rig is placed in animation mode.
 
-Only the `animate.blend` rig supports Animations mode.
+Only the `animate-test.blend` rig supports Animations mode.
 
 For example:
    `rostopic pub --once /cmd_blendermode std_msgs/String Animations`
@@ -298,7 +299,7 @@ loading `main.py` will not work.
 
 	# Obtain the list of supported animations. The result should show:
 	# actions: ['angry-1', 'sad-1', 'happy-1', 'surprised-1']
-	rostopic echo -n 1 /animations_list
+	rostopic echo -n 1 /blender_api/available_emotion_states
 
 	# Perform one of the supported animations
 	rostopic pub --once /cmd_animations std_msgs/String play:sad-1
