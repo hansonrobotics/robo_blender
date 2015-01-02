@@ -153,10 +153,11 @@ is currently bound to eye_pivision.
 ### Animations
 Plays pre-defined animations.  These are defined as object actions
 within the blender rig.  The list of valid animations can be obtained
-with the /animations_list topic; this topic list is NOT published until
-the rig is placed in animation mode.
+in two ways: using the old `/animations_list` topic or the new
+`/blender_api/available_emotion_states` topic.  Neither topic list is
+published until the rig is placed in animation mode.
 
-Only the `animate.blend` rig supports Animations mode.
+Only the `animate-test.blend` rig supports Animations mode.
 
 For example:
    `rostopic pub --once /cmd_blendermode std_msgs/String Animations`
@@ -281,8 +282,7 @@ cameras are now added:
 	roslaunch pi_face_tracker face_tracker_uvc_cam.launch input_rgb_image:=/eye/camera/image_raw
 
 ```
-
-## Example Animations Mode
+## Example New-style Animations Mode
 
 This requies a blender file that contains animations.  The animate-test
 (another Arthur rig) will do.  The blender file should be kept in the
@@ -298,7 +298,32 @@ loading `main.py` will not work.
 
 	# Obtain the list of supported animations. The result should show:
 	# actions: ['angry-1', 'sad-1', 'happy-1', 'surprised-1']
-	rostopic echo -n 1 /animations_list
+	rostopic echo -n 1 /blender_api/available_emotion_states
+
+	# Perform one of the supported animations
+	rostopic pub --once /blender_api/set_emotion_state blender_api_msgs/EmotionState '{name: sad-1, magnitude: 1.0, duration: [6, 500000000]}'
+
+	# Verify that tracking output is sent to the PAU motors
+	rostopic echo /arthur/cmd_eyes_pau
+```
+
+## Example Old-style Animations Mode
+
+This requies a blender file that contains animations.  The animate-test
+(another Arthur rig) will do.  The blender file should be kept in the
+`./robo_blender/src/` directory, else the relative path names for
+loading `main.py` will not work.
+
+```
+	# Start blender, load head, start scripts.
+	blender ./robo_blender/src/animate-test.blend --enable-autoexec -P ./robo_blender/src/startup.py
+
+	# Start the animations mode
+	rostopic pub --once /cmd_blendermode std_msgs/String Animations
+
+	# Obtain the list of supported animations. The result should show:
+	# actions: ['angry-1', 'sad-1', 'happy-1', 'surprised-1']
+	rostopic echo -n 1 /blender_api/available_emotion_states
 
 	# Perform one of the supported animations
 	rostopic pub --once /cmd_animations std_msgs/String play:sad-1
