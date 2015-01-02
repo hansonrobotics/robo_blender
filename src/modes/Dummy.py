@@ -2,7 +2,6 @@ from .controllers import primary
 from .controllers import demo_loops
 import inputs, outputs
 import rospy
-from basic_head_api.msg import MakeFaceExpr
 from .controllers import animate
 
 class Dummy:

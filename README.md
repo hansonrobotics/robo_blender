@@ -58,6 +58,10 @@ This can be worked-around as follows:
     python3 setup.py install
 
 ### Co-requisites
+Building this package requires:
+* [blender_api_msgs](http://github.com/hansonrobotics/blender_api_msgs)
+  for API message definitions.
+
 The tracking mode requires that 
 [eva_behavior](http://github.com/hansonrobotics/eva_behavior) ROS node
 be set up and running.  Additional instructions in the 'cookbook'
