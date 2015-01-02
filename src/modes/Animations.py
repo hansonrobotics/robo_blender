@@ -8,6 +8,7 @@ from robo_blender.msg import animations_list
 
 from blender_api_msgs.msg import AvailableEmotionStates
 from blender_api_msgs.msg import AvailableGestures
+from blender_api_msgs.msg import EmotionState
 
 
 class Animations:
@@ -74,6 +75,15 @@ class Animations:
         if self.current:
             self.anim.setAnimation(self.current)
 
+    # The new-style blender_api_msgs interface
+    def setEmotionState(self, msg):
+        self.command = 'play'
+        if not msg.name in self.animationsList:
+            rospy.logerr("Unknown animation: " + msg.name)
+        else:
+            self.next = msg.name
+            rospy.loginfo("Next animation: " + self.next)
+
 
     # This is called every frame
     def step(self, dt):
@@ -83,10 +93,11 @@ class Animations:
             self.animationsList = self.anim.getAnimationList()
 
             # Initialize the old-style ROS node
-            rospy.Subscriber('cmd_animations', String, self.parseCommand)
             self.animationsPub = rospy.Publisher('animations_list',
                  animations_list, latch=True, queue_size=10)
             self.animationsPub.publish(list(self.animationsList.keys()))
+
+            rospy.Subscriber('cmd_animations', String, self.parseCommand)
 
             # Initialize the new blender_api_msgs ROS node
             self.emoPub = rospy.Publisher(
@@ -99,6 +110,9 @@ class Animations:
                 '/blender_api/available_gestures',
                 AvailableGestures, latch=True, queue_size=10)
             self.gestPub.publish(list())
+
+            rospy.Subscriber('/blender_api/set_emotion_state',
+                EmotionState, self.setEmotionState)
 
             # Other initilizations
             self.init = True
