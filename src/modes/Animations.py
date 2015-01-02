@@ -6,6 +6,8 @@ import rospy
 from std_msgs.msg import String
 from robo_blender.msg import animations_list
 
+from blender_api_msgs.msg import AvailableEmotionStates
+from blender_api_msgs.msg import AvailableGestures
 
 
 class Animations:
@@ -24,9 +26,8 @@ class Animations:
 
         self.current = None
 
-
-    # Parse the command string. We are expecting it to be either
-    # play:animation_name, stop or pause
+    # Parse the old-style command string. We are expecting it to be
+    # either  play:animation_name, stop or pause
     def parseCommand(self, msg):
         msg = msg.data
         data = msg.split(":", 2)
@@ -78,11 +79,28 @@ class Animations:
     def step(self, dt):
         # Make sure we access bpy data and do other task in blender thread
         if not self.init:
-            rospy.Subscriber('cmd_animations',String,self.parseCommand)
-            self.animationsPub = rospy.Publisher('animations_list', animations_list,None, False,True,None,10)
             self.anim = animate.Animate('Armature')
             self.animationsList = self.anim.getAnimationList()
+
+            # Initialize the old-style ROS node
+            rospy.Subscriber('cmd_animations', String, self.parseCommand)
+            self.animationsPub = rospy.Publisher('animations_list',
+                 animations_list, latch=True, queue_size=10)
             self.animationsPub.publish(list(self.animationsList.keys()))
+
+            # Initialize the new blender_api_msgs ROS node
+            self.emoPub = rospy.Publisher(
+                '/blender_api/available_emotion_states',
+                AvailableEmotionStates, latch=True, queue_size=10)
+            self.emoPub.publish(list(self.animationsList.keys()))
+
+            # XXX FIXME No gestures!?!
+            self.gestPub = rospy.Publisher(
+                '/blender_api/available_gestures',
+                AvailableGestures, latch=True, queue_size=10)
+            self.gestPub.publish(list())
+
+            # Other initilizations
             self.init = True
             self.anim.resetAnimation()
 
