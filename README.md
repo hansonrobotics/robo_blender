@@ -79,8 +79,8 @@ be set up and running.  Additional instructions in the 'cookbook'
 section, below.
 
 ### Manual start
-To run, start blender, and load either the robo.blend or the
-animate-test.blend rig file.  The ROS node is not started until
+To run, start blender, and load either the `robo.blend` or the
+`animate-test.blend` rig file.  The ROS node is not started until
 one of the following is performed:
 
  * Hover mouse over the text editor and press Alt+P
