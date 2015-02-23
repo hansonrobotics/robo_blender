@@ -1,9 +1,20 @@
 # Robo Blender
 
+CAUTION
+-------
+Deprecated/Obsolete.  As of December 2014, the ROS-plus-blender
+architecture implemented here has been superceded by the "Eva"
+ROS-plus-blender architecture that can be found in
+[blender_api](http://github.com/hansonrobotics/blender_api) and
+[blender_api_msgs](http://github.com/hansonrobotics/blender_api_msgs).
+The newer architecture provides a simpler, easier-to-use interface,
+and provides a greater number of functions.  The below provides
+support for the older Arthur and Einstein head designs.
+
 This provides a ROS node which may be used to control Blender rigs,
 and to publish the resulting rig position information (for the neck,
 face, eyes).  The position information can then be used to drive motors
-(for example).  The 
+(for example).  The
 [pau2motors](http://github.com/hansonrobotics/pau2motors) ROS node
 will listen to the published messages to control the Einstein and
 Arthur robot heads.
@@ -24,7 +35,7 @@ The last working version of the Einstein rig is in the branch named
 
 # Running
 The easiest way to run this node is to use it with a Docker container.
-Docker containers specify all of the pre-requisite software components 
+Docker containers specify all of the pre-requisite software components
 that are needed to in order for a demo to be run.  An all-in-one
 containder for this node has been defined at
 [opencog/ros](http://github.com/opencog/ros), in the ros-indigo-animation
@@ -41,14 +52,14 @@ If you do the above, you can skip the Manual Install steps below.
 ## Manual Install and Operation
 ### Pre-requisites
 The following packages need to be installed:
-
+```
     apt-get install python3-yaml python3-rospkg
-
+```
 Caution: python3+ros has issues; see this bug:
 https://github.com/ros-infrastructure/rospkg/issues/71
 
 This can be worked-around as follows:
-
+```
     git clone git://github.com/ros/rospkg.git
     cd rospkg
     python3 setup.py install
@@ -56,13 +67,13 @@ This can be worked-around as follows:
     git clone git://github.com/ros-infrastructure/catkin_pkg.git
     cd catkin_pkg
     python3 setup.py install
-
+```
 ### Co-requisites
 Building this package requires:
 * [blender_api_msgs](http://github.com/hansonrobotics/blender_api_msgs)
   for API message definitions.
 
-The tracking mode requires that 
+The tracking mode requires that
 [eva_behavior](http://github.com/hansonrobotics/eva_behavior) ROS node
 be set up and running.  Additional instructions in the 'cookbook'
 section, below.
