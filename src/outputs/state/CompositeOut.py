@@ -1,3 +1,4 @@
+#Copyright (c) 2013-2018 Hanson Robotics, Ltd.
 from .. import get_instance
 from . import StateOutputBase
 

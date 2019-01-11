@@ -1,3 +1,4 @@
+#Copyright (c) 2013-2018 Hanson Robotics, Ltd.
 import rospy
 from .bases.ObjectInBlender import ObjectInBlender
 import sensor_msgs.msg

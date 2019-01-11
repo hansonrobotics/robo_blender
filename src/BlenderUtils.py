@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#Copyright (c) 2013-2018 Hanson Robotics, Ltd.
 import bpy
 from mathutils import Matrix
 
