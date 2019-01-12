@@ -1,3 +1,4 @@
+#Copyright (c) 2013-2018 Hanson Robotics, Ltd.
 import bpy
 from . import InputBase
 from mathutils import Vector

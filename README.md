@@ -355,3 +355,4 @@ loading `main.py` will not work.
 	# Halt the animation
 	rostopic pub --once /cmd_animations std_msgs/String stop
 ```
+#####Copyright (c) 2013-2018 Hanson Robotics, Ltd.

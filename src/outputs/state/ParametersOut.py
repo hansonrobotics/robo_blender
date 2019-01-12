@@ -1,3 +1,4 @@
+#Copyright (c) 2013-2018 Hanson Robotics, Ltd.
 import inspect
 import Utils, BlenderUtils, ShapekeyStore, ShapekeyStore2
 import bpy
